@@ -8,7 +8,8 @@ port = 9061
 def handleclnt(sock):
     while True:
         data = sock.recv(BUFSIZE)
-        print('data: ' %data)
+        data = data.decode()
+        print('data: '+data)
         if not data:
             break
 
@@ -23,8 +24,7 @@ if __name__=='__main__':
     while True:
         client_socket, addr = server_socket.accept()
         
-        t=threading.Thread(target=handleclnt, args=(client_socket, addr))
+        t=threading.Thread(target=handleclnt, args=(client_socket,))
         t.start()
-#aaaaaaaaaaaaaaaa
+        
     server_socket.close()
-    #aaaaaaaaaaaaaa
