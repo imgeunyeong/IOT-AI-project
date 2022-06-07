@@ -5,7 +5,7 @@ from PyQt5 import uic #ui연결해주는 모듈
 import sys
 import socket 
 
-sock=socket.create_connection(('127.0.0.1',9003))
+sock=socket.create_connection(('10.10.20.33',9015))
 #sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 #sock.connect((IP,port))
 
@@ -21,7 +21,7 @@ class login (QDialog):
 
     def input_login(self): #실행확인용함수
         id=self.idbar.text() #텍스트 가져옴
-        pw=self.pwbar.text()
+        pw=self.pwbar2.text()
         info=id+'/'+pw
         sock.send(info.encode())
         #데이터 베이스에 있는지 서버에서 확인하고 있으면 !ok 없으면 !no
@@ -41,19 +41,21 @@ class login (QDialog):
         
     def join(self):  #가입창 함수
         sock.send('!signup'.encode()) #서버에 사인업 명령어 보냄 
+        self.close() #로그인ui를닫음(self가 현재 login class임)
         regit_show = regit() # 클래스담고
         regit_show.exec_() #클래스실행(가입창)
-        self.close() #로그인ui를닫음(self가 현재 login class임)
+        
         
 
 class regit(QDialog): #가입창 
     def __init__(self):
         super().__init__()
-        self .ui=uic.loadUi("regit.ui",self)
+        self.ui=uic.loadUi("regit.ui",self)       
 
         #이벤트
         self.id_chk.clicked.connect(self.check_id)
         self.regit_button.clicked.connect(self.check_pw) #이게 눌렀을떄 연결임
+               
 
     def check_id(self): 
         id=self.idbar.text() #텍스트창에입력된거 id에 넣고
@@ -65,14 +67,31 @@ class regit(QDialog): #가입창
         else: QMessageBox.warning(self, 'Warning', '중복된 아이디입니다')
 
     def check_pw(self):
+        id=self.idbar.text()
         pw1=self.pwbar1.text()
         pw2=self.pwbar2.text()
 
         if pw1==pw2:
             QMessageBox.information(self, 'Message', '축하합니다! 가입이 완료 되었습니다')
+            name=self.namebar.text()
+            infoall= id + '/' + pw1 + '/' + name + '/'
+            #str(self.id)
+            
+            if self.student.isChecked() : infoall=infoall+'stu'
+            elif self.teacher.isChecked() :
+                infoall=infoall+'tea'
+            sock.sendall(infoall.encode())
+            self.enter()
 
         else:
             QMessageBox.warning(self, 'Warning', '비밀번호를 잘못 입력했습니다')
+
+    def enter(self):  #가입창 함수
+        sock.send('!login'.encode()) #서버에 사인업 명령어 보냄 
+        self.close() #로그인ui를닫음(self가 현재 login class임)
+        login_show = login() # 클래스담고
+        login_show.exec_() #클래스실행(가입창)
+        
 
    
 if __name__ == '__main__':
