@@ -20,24 +20,32 @@ class login (QDialog):
 
 
     def input_login(self): #실행확인용함수
+
+        sock.send('!login'.encode())
         id=self.idbar.text() #텍스트 가져옴
-        pw=self.pwbar2.text()
+        pw=self.pwbar.text()
         info=id+'/'+pw
-        sock.send(info.encode())
+
+        if self.student.isChecked() : info=info+'/stu'
+        elif  self.teacher.isChecked() : info=info+'/tea'
+
+        sock.send(info.encode()) #id,pw,type
         #데이터 베이스에 있는지 서버에서 확인하고 있으면 !ok 없으면 !no
-        #ch=sock.recv(1024).decode() #여기서 디코드 해야하나?
+        ch=sock.recv(1024).decode() #여기서 디코드 
+        print(ch) 
+        chlist=ch.split('/')
+        if chlist[0] =='!ok': #데이터베이스에 있으면 (데이터베이스는 !ok or !no/'stu' or 'tea' 형태로 보냄)
+           
+            if chlist[1]=='stu':
+                print('stu ui 넣는 자리!!!!!!')
+
+            elif chlist[1]=='tea':
+                self.close() #로그인ui를닫음(self가 현재 login class임)
+                teacherui_show = teacherui() # 클래스담고
+                teacherui_show.exec_() #클래스실행(가입창)
+            
+            else: QMessageBox.warning(self, 'Warning', '아이디,비밀번호를 확인해주세요')
         
-        #if ch=='!ok' 데이터베이스에 있으면 (데이터베이스는 !ok or !no/'stu' or 'tea' 형태로 보냄)
-            #chlist=ch.split('/')
-            #if chlist[1]=='stu':
-                #print('stu ui 실행')
-            #else:
-                #print('tea ui 실행')
-        #else면
-        #로그인 에러
-        #QMessageBox.warning(self, 'Warning', '아이디,비밀번호를 확인해주세요')
-        
-        print(id)
         
     def join(self):  #가입창 함수
         sock.send('!signup'.encode()) #서버에 사인업 명령어 보냄 
@@ -75,7 +83,7 @@ class regit(QDialog): #가입창
             QMessageBox.information(self, 'Message', '축하합니다! 가입이 완료 되었습니다')
             name=self.namebar.text()
             infoall= id + '/' + pw1 + '/' + name + '/'
-            #str(self.id)
+            
             
             if self.student.isChecked() : infoall=infoall+'stu'
             elif self.teacher.isChecked() :
@@ -91,6 +99,16 @@ class regit(QDialog): #가입창
         self.close() #로그인ui를닫음(self가 현재 login class임)
         login_show = login() # 클래스담고
         login_show.exec_() #클래스실행(가입창)
+
+class teacherui(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.ui=uic.loadUi("teacher.ui",self)   
+
+            
+
+
+
         
 
    
