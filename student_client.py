@@ -5,6 +5,7 @@ from PyQt5 import uic #ui연결해주는 모듈
 import sys
 import socket
 from threading import*
+import sqlite3
 
 sock=socket.create_connection(('127.0.0.1',9016))
 sock_2 = socket.create_connection(('127.0.0.1', 9017))
@@ -122,6 +123,22 @@ class studentui(QMainWindow):
         self.recv_thread = Thread(target=self.chatroom_recv, args=(sock_2,))
         self.recv_thread.start()
 
+    def widget_append(self):
+        self.stackedWidget.setCurrentIndex(1)
+        i = 0
+        con = sqlite3.connect("stu_client.db")
+        with con:
+            cur = con.cursor()
+            rows = cur.execute('select * from dinosaur')
+            for row in rows:
+                self.study_widget.setRowCount((i + 1))
+                changetype = list(row)
+                print(changetype)
+                for j in range(7):
+                    self.study_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
+                i += 1
+
+
     def chatroom_recv(self, s):
             data = s.recv(1024).decode()
             print(data)
@@ -132,7 +149,7 @@ class studentui(QMainWindow):
 
 
     def button_click(self): # 클릭 작용 함수 모음
-        self.study_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
+        self.study_button.clicked.connect(self.widget_append)
         self.quiz_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(2))
         self.question_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
         self.chatroom_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(4))
@@ -142,7 +159,14 @@ class studentui(QMainWindow):
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.quiz_line.returnPressed.connect(lambda:self.quiz_browser.append(self.quiz_line.text()))  # 수정 할 예정
         self.qna_line.returnPressed.connect(self.chatroom_send)  # 수정 할 예정
-
+        header = self.study_widget.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
 
    
 if __name__ == '__main__':

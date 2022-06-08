@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>910</width>
-    <height>703</height>
+    <width>920</width>
+    <height>704</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,16 +17,16 @@
    <widget class="QStackedWidget" name="stackedWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>911</width>
-      <height>701</height>
+      <x>-10</x>
+      <y>-10</y>
+      <width>931</width>
+      <height>721</height>
      </rect>
     </property>
     <property name="styleSheet">
      <string notr="true">color: rgb(131, 56, 236);
-	background-color: white;
-	border: 2px solid rgb(58, 134, 255);
+	background-color: qlineargradient(spread:pad, x1:0.125, y1:0.892227, x2:0.865, y2:0.130727, stop:0.208333 rgba(128, 106, 174, 255), stop:0.645833 rgba(204, 106, 201, 255));
+	border: 1.5px solid rgb(58, 134, 255);
 	border-radius: 5px;</string>
     </property>
     <property name="currentIndex">
@@ -50,7 +50,7 @@
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(58, 134, 255);
+       <string notr="true">color: blue;
 	background-color: white;
 	border: 2px solid rgb(58, 134, 255);
 	border-radius: 5px;</string>
@@ -181,56 +181,145 @@ border-radius: 20;
      <widget class="QTableWidget" name="study_widget">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>90</y>
-        <width>711</width>
-        <height>481</height>
+        <x>70</x>
+        <y>70</y>
+        <width>781</width>
+        <height>531</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <family>Ubuntu</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">color: blue;
+background-color:lavender;</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
       </property>
       <column>
        <property name="text">
         <string>공룡명</string>
+       </property>
+       <property name="font">
+        <font>
+         <family>Ubuntu</family>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
        </property>
       </column>
       <column>
        <property name="text">
         <string>생존시기</string>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
       </column>
       <column>
        <property name="text">
         <string>크기</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
        </property>
       </column>
       <column>
        <property name="text">
         <string>체중</string>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
       </column>
       <column>
        <property name="text">
         <string>발견한 대륙</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
        </property>
       </column>
       <column>
        <property name="text">
         <string>발견 상세지역</string>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
       </column>
       <column>
        <property name="text">
         <string>특징</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
        </property>
       </column>
      </widget>
      <widget class="QLabel" name="label_2">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>20</y>
+        <x>70</x>
+        <y>10</y>
         <width>111</width>
         <height>51</height>
        </rect>
@@ -241,6 +330,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>학습자료</string>
@@ -265,6 +358,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
+      </property>
       <property name="text">
        <string>돌아가기</string>
       </property>
@@ -287,6 +384,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
      </widget>
      <widget class="QPushButton" name="back_button_2">
       <property name="geometry">
@@ -303,6 +404,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>돌아가기</string>
@@ -323,6 +428,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>QUIZ</string>
@@ -347,6 +456,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
      </widget>
      <widget class="QLabel" name="label_4">
       <property name="geometry">
@@ -363,6 +476,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>입력 후 버튼 클릭 또는 엔터</string>
@@ -388,7 +505,8 @@ border-radius: 20;
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>입력</string>
@@ -412,6 +530,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
+      </property>
       <property name="text">
        <string>돌아가기</string>
       </property>
@@ -431,6 +553,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>Q n A</string>
@@ -455,6 +581,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
      </widget>
      <widget class="QLineEdit" name="qna_line">
       <property name="geometry">
@@ -472,6 +602,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
      </widget>
      <widget class="QLabel" name="label_6">
       <property name="geometry">
@@ -488,6 +622,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>입력 후 엔터 또는 버튼 클릭</string>
@@ -513,7 +651,8 @@ border-radius: 20;
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>등록</string>
@@ -536,6 +675,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>실시간 상담</string>
@@ -560,6 +703,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
      </widget>
      <widget class="QLabel" name="label_8">
       <property name="geometry">
@@ -576,6 +723,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>입력 후 엔터 또는 버튼 클릭</string>
@@ -600,6 +751,10 @@ border-radius: 20;
         <bold>true</bold>
        </font>
       </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
      </widget>
      <widget class="QPushButton" name="pushButton_3">
       <property name="geometry">
@@ -618,7 +773,8 @@ border-radius: 20;
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>입력</string>
@@ -639,6 +795,10 @@ border-radius: 20;
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
       </property>
       <property name="text">
        <string>돌아가기</string>
