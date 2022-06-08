@@ -1,6 +1,7 @@
 #class login(QDialog)#큐다이얼로그의 기능을 사용하기 위해서 상속받음
 from sqlite3 import dbapi2
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import*
 from PyQt5 import uic #ui연결해주는 모듈
 import sys
 import socket
@@ -8,9 +9,7 @@ from threading import*
 import sqlite3
 
 sock=socket.create_connection(('127.0.0.1',9016))
-sock_2 = socket.create_connection(('127.0.0.1', 9017))
-#sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-#sock.connect((IP,port))
+
 
 
 class login (QDialog):
@@ -120,8 +119,7 @@ class studentui(QMainWindow):
         self.stu_ui=uic.loadUi("student.ui",self)
         self.setWindowTitle("학습(학생용)")
         self.button_click()
-        self.recv_thread = Thread(target=self.chatroom_recv, args=(sock_2,))
-        self.recv_thread.start()
+
 
     def widget_append(self):
         self.stackedWidget.setCurrentIndex(1)
@@ -138,27 +136,27 @@ class studentui(QMainWindow):
                     self.study_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
                 i += 1
 
-
-    def chatroom_recv(self, s):
-            data = s.recv(1024).decode()
-            print(data)
-
-    def chatroom_send(self):
-            sock_2.send(self.qna_line.text().encode())
-            self.qna_line.clear()
-
+    def enter_chatroom(self):
+        self.stackedWidget.setCurrentIndex(4)
+        sock.send('!chat'.encode())
+        super().__init__()
+        self.setWindowTitle("상담하고 싶은 선생님 입력 후 ENTER")
+        self.setGeometry(400, 400, 400, 100)
+        choice_teacher = QLineEdit(self)
+        choice_teacher.setGeometry(60, 25, 280, 50)
+        choice_teacher.setFont(QFont('Ubuntu', 14))
+        self.show()
 
     def button_click(self): # 클릭 작용 함수 모음
         self.study_button.clicked.connect(self.widget_append)
         self.quiz_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(2))
         self.question_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
-        self.chatroom_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(4))
+        self.chatroom_button.clicked.connect(self.enter_chatroom)
         self.back_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.quiz_line.returnPressed.connect(lambda:self.quiz_browser.append(self.quiz_line.text()))  # 수정 할 예정
-        self.qna_line.returnPressed.connect(self.chatroom_send)  # 수정 할 예정
         header = self.study_widget.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
