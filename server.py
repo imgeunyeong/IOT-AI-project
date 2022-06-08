@@ -66,7 +66,8 @@ def login(sock): #로그인 처리 함수
                 send_msg(sock, msg) #성공시 !ok 보내기
                 userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0])
                 usercnt += 1
-                print('sucess 로그인: ' +userInfo[usercnt-1])
+                print('sucess 로그인: ')
+                print(userInfo[usercnt-1])
                 break
             else:
                 msg='!no/tea'
@@ -83,7 +84,8 @@ def login(sock): #로그인 처리 함수
                 send_msg(sock, msg) #성공시 !ok 보내기
                 userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0])
                 usercnt += 1
-                print('sucess 로그인: ' +userInfo[usercnt-1])
+                print('sucess 로그인: ')
+                print(userInfo[usercnt-1])
                 break
             else:
                 msg='!no/stu'
