@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 import socket
 import threading
 import sqlite3
@@ -8,7 +9,7 @@ host = '10.10.20.33'
 port = 9015
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
-
+lock=threading.Lock()
 
 def getcon(): #db와 연결 함수
     con = sqlite3.connect('edu.db')
@@ -52,6 +53,7 @@ def login(sock): #로그인 처리 함수
     con, c = getcon()
     
     while True:
+        lock.acquire()
         data = recv_msg(sock)
         print('data: '+data)
         userdata = data.split('/') # /기준으로 문자열 나누기
@@ -92,12 +94,87 @@ def login(sock): #로그인 처리 함수
                 msg='!no/stu'
                 send_msg(sock, msg) #실패시 !no 보내기
                 print('fail')
-                continue   
+                continue
+        lock.release()   
         break
-
-def chatmode(sock):
+# 오류 발견시 수정해야 할 듯
+def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변경
+    con, c = getcon()
+    lock.acquire()
     for i in range(0, usercnt):
-        
+        if userInfo[i][0] == sock and userInfo[i][2] == 'stu': #학생이 요청시
+            data= recv_msg(sock) #상담요청할 선생님 이름 받기
+            print('data: '+data)
+            c.execute('select ID from teacherInfo where Name = ?', (data,)) #db에서 해당 이름 ID찾기
+            userID=c.fetchone()
+            print(userID)
+            for j in range(0, usercnt):
+                if userID == (userInfo[j][1],): #현재 접속중일때
+                    msg = '!invite' #해당 클라이언트에 초대매세지 전송
+                    send_msg(userInfo[j][0], msg)
+                    recv = recv_msg(userInfo[j][0])
+                    print('recv: '+recv)
+                    if recv == '!ok': #초대 수락시
+                        userInfo[i][3] = 1
+                        userInfo[j][3] = 1
+                        print(userInfo[i][3], userInfo[j][3])
+                        print('succes')
+                        #chat(userInfo[i][0])
+                        #chat(userInfo[j][0])
+                    elif recv == '!no': #초대 거절시
+                        msg = '!no'
+                        send_msg(userInfo[i][0], msg)    
+                    break
+                else: #접속중이 아닐때
+                    print('fail')
+                    msg ="can't find"
+                    send_msg(sock, msg)
+                    break
+            
+        elif userInfo[i][0] == sock and userInfo[i][2] == 'tea': #선생님이 요청시
+            data= recv_msg(sock) #상담요청할 학생 이름 받기 
+            print('data: '+data)
+            c.execute('select ID from studentInfo where Name = ?', (data,))
+            userID=c.fetchone()
+            print(userID)
+            for j in range(0, usercnt):
+                if userID == (userInfo[j][1],):
+                    msg = '!invite'
+                    send_msg(userInfo[j][0], msg)
+                    recv = recv_msg(userInfo[j][0])
+                    print('recv: '+recv)
+                    if recv == '!ok':
+                        userInfo[i][3] = 1
+                        userInfo[j][3] = 1
+                        print(userInfo[i][3], userInfo[j][3])
+                        print('succes')
+                        #chat(userInfo[i][0])
+                        #chat(userInfo[j][0])
+                    elif recv == '!no':
+                        msg = '!no'
+                        send_msg(userInfo[i][0], msg)    
+                    break
+                else:
+                    msg="!can't find"
+                    send_msg(sock, msg)
+                    print('fail')
+                    break
+                  
+        break
+    lock.release()    
+def chat(sock):
+    #상담 시작한 클라이언트 소켓 받아오고
+    #해당 소켓들의 메세지 받아서 다시 보내준다....?
+    #수정중
+    while True:
+        lock.acquire()
+        data=recv_msg(sock)
+        print('data: '+data)
+        userdata = data.split('/') # /기준으로 문자열 나누기
+        print('data[1]: '+userdata[1])
+        if userdata[1] == '!quit':
+            send_msg
+        lock.release()
 
 def handleclnt(sock): # 클라정보 수신 스레드
     while True:
@@ -107,7 +184,7 @@ def handleclnt(sock): # 클라정보 수신 스레드
             signup(sock)
         elif data == '!login': #!login 받으면 로그인 함수 실행
             login(sock)
-        elif data == '!chat':
+        elif data == '!chat': #!chat 받으면 상담모드 변경 함수 실행
             chatmode(sock)
         elif not data:
             break
