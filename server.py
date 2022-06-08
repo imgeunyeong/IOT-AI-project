@@ -4,8 +4,10 @@ import sqlite3
 import sys
 
 BUFSIZE = 1024 #버퍼사이즈
-host = '127.0.0.1' 
-port = 9016
+host = '10.10.20.33' 
+port = 9015
+userInfo = []
+usercnt = 0
 
 
 def getcon(): #db와 연결 함수
@@ -13,21 +15,21 @@ def getcon(): #db와 연결 함수
     c=con.cursor()
     return con, c
 
-def recv_clnt_msg(clnt_sock):
+def recv_msg(clnt_sock): #메세지 수신
     sys.stdout.flush()  # 버퍼 비우기
     clnt_msg = clnt_sock.recv(BUFSIZE)  # 메세지 받아오기
     clnt_msg = clnt_msg.decode()  # 디코딩
     return clnt_msg
 
 
-def send_clnt_msg(clnt_sock, msg):
+def send_msg(clnt_sock, msg): #메세지 송신
     sys.stdin.flush()  # 버퍼 비우기
     msg = msg.encode()  # 인코딩
     clnt_sock.send(msg)  # 메세지 보내기
    
 def signup(sock): #회원가입 처리 함수
     con, c = getcon()
-    data = recv_clnt_msg(sock)
+    data = recv_msg(sock)
     
     print('data: '+data)
     userdata = data.split('/') #/기준으로 문자열 나누기
@@ -37,23 +39,19 @@ def signup(sock): #회원가입 처리 함수
         c.execute('insert into teacherInfo (ID, PW, Name, type) values (?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3])) #선생 테이블에 데이터 저장
         con.commit()
         con.close()
-        msg='!ok'
-        send_clnt_msg(sock, msg) #!ok 메세지 전송
         print('succes 회원가입')
         
     elif userdata[3] == 'stu': #학생
         c.execute('insert into studentInfo (ID, PW, Name, type) values (?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3])) #학생 테이블에 데이터 저장
         con.commit()
         con.close()
-        msg='!ok'
-        send_clnt_msg(sock, msg) #!ok 메세지 전송
         print('succes 회원가입')
 
 def login(sock): #로그인 처리 함수
     con, c = getcon()
     
     while True:
-        data = recv_clnt_msg(sock)
+        data = recv_msg(sock)
         print('data: '+data)
         userdata = data.split('/') # /기준으로 문자열 나누기
         print('data[2]: '+userdata[2])
@@ -65,12 +63,14 @@ def login(sock): #로그인 처리 함수
             print(dbPW)
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/tea'
-                send_clnt_msg(sock, msg) #성공시 !ok 보내기
-                print('sucess 로그인')
+                send_msg(sock, msg) #성공시 !ok 보내기
+                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0])
+                usercnt += 1
+                print('sucess 로그인: ' +userInfo[usercnt-1])
                 break
             else:
                 msg='!no/tea'
-                send_clnt_msg(sock, msg) #실패시 !no 보내기
+                send_msg(sock, msg) #실패시 !no 보내기
                 print('fail')
                 continue   
         if userdata[2] == 'stu': #학생
@@ -80,23 +80,31 @@ def login(sock): #로그인 처리 함수
             dbPW = c.fetchone()
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/stu'
-                send_clnt_msg(sock, msg) #성공시 !ok 보내기
-                print('sucess 로그인')
+                send_msg(sock, msg) #성공시 !ok 보내기
+                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0])
+                usercnt += 1
+                print('sucess 로그인: ' +userInfo[usercnt-1])
                 break
             else:
                 msg='!no/stu'
-                send_clnt_msg(sock, msg) #실패시 !no 보내기
+                send_msg(sock, msg) #실패시 !no 보내기
                 print('fail')
                 continue   
-        break       
+        break
+
+#def chatmode(sock):
+
+
 def handleclnt(sock): # 클라정보 수신 스레드
     while True:
-        data = recv_clnt_msg(sock)
+        data = recv_msg(sock)
         print('data: '+data)
         if data == '!signup': #!signup 받으면 회원가입 함수 실행
             signup(sock)
         elif data == '!login': #!login 받으면 로그인 함수 실행
             login(sock)
+        #elif data == '!chat':
+        #    chatmode(sock)
         elif not data:
             break
 
