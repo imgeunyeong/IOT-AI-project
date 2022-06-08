@@ -6,8 +6,8 @@ import sys
 BUFSIZE = 1024 #버퍼사이즈
 host = '10.10.20.33' 
 port = 9015
-userInfo = []
-usercnt = 0
+userInfo = [] #로그인 성공시 유저 정보 저장 
+usercnt = 0 #연결 유저 카운트
 
 
 def getcon(): #db와 연결 함수
@@ -48,6 +48,7 @@ def signup(sock): #회원가입 처리 함수
         print('succes 회원가입')
 
 def login(sock): #로그인 처리 함수
+    global usercnt
     con, c = getcon()
     
     while True:
@@ -64,7 +65,7 @@ def login(sock): #로그인 처리 함수
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/tea'
                 send_msg(sock, msg) #성공시 !ok 보내기
-                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0])
+                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성
                 usercnt += 1
                 print('sucess 로그인: ')
                 print(userInfo[usercnt-1])
@@ -82,7 +83,7 @@ def login(sock): #로그인 처리 함수
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/stu'
                 send_msg(sock, msg) #성공시 !ok 보내기
-                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0])
+                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성
                 usercnt += 1
                 print('sucess 로그인: ')
                 print(userInfo[usercnt-1])
@@ -94,8 +95,9 @@ def login(sock): #로그인 처리 함수
                 continue   
         break
 
-#def chatmode(sock):
-
+def chatmode(sock):
+    for i in range(0, usercnt):
+        
 
 def handleclnt(sock): # 클라정보 수신 스레드
     while True:
@@ -105,8 +107,8 @@ def handleclnt(sock): # 클라정보 수신 스레드
             signup(sock)
         elif data == '!login': #!login 받으면 로그인 함수 실행
             login(sock)
-        #elif data == '!chat':
-        #    chatmode(sock)
+        elif data == '!chat':
+            chatmode(sock)
         elif not data:
             break
 
