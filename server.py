@@ -38,7 +38,7 @@ def delete_userInfo(sock):
     global usercnt
     for i in range(0, usercnt):
         if sock == userInfo[i][0]: #종료요청한 클라이언트 찾기
-            print('exit: '+i)
+            print('exit')
             while i <usercnt-1: #종료한 클라이언트 뒤의 클라이언트 정보 한칸씩 당겨오기
                 userInfo[i]=userInfo[i+1]
                 i+=1
@@ -54,12 +54,10 @@ def signup(sock): #회원가입 처리 함수
         find = c.fetchone()       
         print(find)
         if find == None:
-            msg = '!ok'
-            send_msg(sock, msg)
+            send_msg(sock, '!ok/serv')
             break
         else:
-            msg='!no'
-            send_msg(sock, msg)
+            send_msg(sock, '!no/serv')
             continue
     data = recv_msg(sock)
     print('data: '+data)
@@ -107,9 +105,9 @@ def login(sock): #로그인 처리 함수
             
         if userdata[1] == dbPW: #찾은 정보랑 입력이랑 일치시
             if userdata[2] == 'tea':
-                msg='!ok/tea'
+                msg='!ok/tea/serv'
             elif userdata[2] == 'stu':
-                msg ='!ok/stu'
+                msg ='!ok/stu/serv'
             send_msg(sock, msg) #성공시 !ok 보내기
             # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
             # userInfo[clnt_num][2] = userdata[2]
@@ -120,8 +118,7 @@ def login(sock): #로그인 처리 함수
             con.close()
             break
         else:
-            msg='!no/tea'
-            send_msg(sock, msg) #실패시 !no 보내기
+            send_msg(sock, '!no/tea/serv') #실패시 !no 보내기
             print('fail')
             continue   
     #lock.release()   
@@ -137,6 +134,10 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
         print('name: '+name)
         c.execute('select ID from studentInfo where Name = ?', (name,)) #학생이름으로 db에서 아이디 찾기
         find = c.fetchone()
+        if not find:
+            send_msg(userInfo[num][0], '!no/serv')
+            con.close()
+            return
         find = ''.join(find)
         print(find)
         
@@ -146,20 +147,25 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
         print('name: '+name)
         c.execute('select ID from teacherInfo where Name = ?', (name,)) #선생이름 ID 찾고
         find = c.fetchone()
+        if not find:
+            send_msg(userInfo[num][0], '!no/serv')
+            con.close()
+            return
+        find = ''.join(find)
         print(find)
      
     for i in range(0, usercnt):
         if userInfo[i][1] == find and userInfo[i][3] == 0:
-            send_msg(userInfo[i][0], '!invite')
+            send_msg(userInfo[i][0], '!invite/serv')
             recv=recv_msg(userInfo[i][0])           
-            if recv == '!ok':
+            if recv == '!ok/serv':
                 userInfo[num][3] = 1
                 userInfo[i][3] = 1
                 #chat(i, num)
                 con.close()
                 return
-            elif recv == '!no':
-                send_msg(userInfo[num][0], '!no')
+            elif recv == '!no/serv':
+                send_msg(userInfo[num][0], '!no/serv')
                 con.close
                 return                                  
       
@@ -176,13 +182,12 @@ def chat(clnt_num, name):
         if msg == '!quit':
             for i in range(0, len(userInfo)):
                 if userInfo[clnt_num][3] == userInfo[i][3]:
-                    msg='!exit'
-                    send_msg(userInfo[i][3], msg)
+                    msg='!exit/serv'
+                    send_msg(userInfo[i][3], '!exit/serv')
         else:
             for i in range(0, len(userInfo)):
                 if userInfo[clnt_num][3] == userInfo[i][3]:
-                    msg=name+msg
-                    send_msg(userInfo[i][3], msg)
+                    send_msg(userInfo[i][3], msg+name)
         #lock.release()
 
 def QnA(sock):
