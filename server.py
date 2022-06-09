@@ -47,8 +47,21 @@ def delete_userInfo(sock):
    
 def signup(sock): #회원가입 처리 함수
     con, c = getcon()
+    while True:
+        data = recv_msg(sock)
+        print('data: '+data)
+        c.execute('select teacherInfo.ID, studentInfo.ID from teacherInfo inner join studentInfo on teacherInfo.ID = studentInfo.ID')
+        find = c.fetchone()       
+        print(find)
+        if find == None:
+            msg = '!ok'
+            send_msg(sock, msg)
+            break
+        else:
+            msg='!no'
+            send_msg(sock, msg)
+            continue
     data = recv_msg(sock)
-    
     print('data: '+data)
     userdata = data.split('/') #/기준으로 문자열 나누기
     print('data[3]: '+userdata[3])
@@ -90,7 +103,10 @@ def login(sock): #로그인 처리 함수
             dbPW = c.fetchone()
             
         if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
-            msg='!ok/tea'
+            if userdata[2] == 'tea':
+                msg='!ok/tea'
+            elif userdata[2] == 'stu':
+                msg ='!ok/stu'
             send_msg(sock, msg) #성공시 !ok 보내기
             # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
             # userInfo[clnt_num][2] = userdata[2]
