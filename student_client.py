@@ -118,7 +118,7 @@ class studentui(QMainWindow):
     def __init__(self):
         super().__init__()
         self.stu_ui=uic.loadUi("student.ui",self)
-        self.setWindowTitle("학습(학생용)")
+        self.setWindowTitle("학생용 클라이언트")
         self.button_click()
         self.icon = QIcon('talk.png')
         self.setWindowIcon(self.icon)
@@ -147,21 +147,26 @@ class studentui(QMainWindow):
         self.choice_teacher.setGeometry(60, 25, 280, 50)
         self.choice_teacher.setFont(QFont('Ubuntu', 14))
         self.choice_teacher.setStyleSheet("color:black;background-color:lavender;")
-        self.choice_teacher.returnPressed.connect(self.send_msg)
+        self.choice_teacher.returnPressed.connect(self.send_choice_msg)
         self.show()
 
-    def send_msg(self): # 서버로 실시간 상담 접속 정보를 보냄
+    def send_choice_msg(self): # 서버로 실시간 상담 접속 정보를 보냄
         self.close()
         sock.send('!chat'.encode())
         sock.send(f'{self.choice_teacher.text()}'.encode())
         self.counseling_browser.append("선생님을 기다리는중...")
-        tea_msg = Thread(target=self.recv_msg, args=(sock,))
+        tea_msg = Thread(target=self.recv_msg)
         tea_msg.start()
 
     def recv_msg(self): # 서버에서 실시간 상담 메시지를 받음
         while True:
             a = sock.recv(1024).decode()
             self.counseling_browser.append(a)
+
+    def send_msg(self): # 서버로 실시간 상담 메시지를 보냄
+        self.counseling_browser.append(self.counseling_line.text())
+        sock.send(self.counseling_line.text().encode())
+        self.counseling_line.clear()
 
     def button_click(self): # 클릭 작용 함수 모음
         self.study_button.clicked.connect(self.widget_append)
@@ -172,8 +177,7 @@ class studentui(QMainWindow):
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
-        self.quiz_line.returnPressed.connect(lambda:self.quiz_browser.append(self.quiz_line.text()))  # 수정 할 예정
-        self.counseling_line.returnPressed.connect(lambda:sock.send(self.counseling_line.text().encode()))
+        self.counseling_line.returnPressed.connect(self.send_msg)
         header = self.study_widget.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -182,6 +186,7 @@ class studentui(QMainWindow):
         header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
+        self.quiz_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
    
 if __name__ == '__main__':
