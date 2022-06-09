@@ -72,7 +72,7 @@ def login(sock): #로그인 처리 함수
     while True:
         lock.acquire()
         data = recv_msg(sock)
-        clnt_num = findNum(sock)
+        #clnt_num = findNum(sock)
         print('data: '+data)
         userdata = data.split('/') # /기준으로 문자열 나누기
         print('data[2]: '+userdata[2])
@@ -85,9 +85,9 @@ def login(sock): #로그인 처리 함수
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/tea'
                 send_msg(sock, msg) #성공시 !ok 보내기
-                # userInfo[clnt_num][1] = userdata[0] #연결했을때 저장한 데이터 수정
+                # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
                 # userInfo[clnt_num][2] = userdata[2]
-                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성
+                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성 로그인시 저장
                 usercnt += 1
                 print('sucess 로그인: ')
                 print(userInfo[usercnt-1])
@@ -105,9 +105,9 @@ def login(sock): #로그인 처리 함수
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/stu'
                 send_msg(sock, msg) #성공시 !ok 보내기
-                # userInfo[clnt_num][1] = userdata[0] #연결했을때 저장한 데이터 수정
+                # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
                 # userInfo[clnt_num][2] = userdata[2]
-                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성
+                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성 로그인시 저장
                 usercnt += 1
                 print('sucess 로그인: ')
                 print(userInfo[usercnt-1])
@@ -134,6 +134,8 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
                 if userID == (userInfo[j][1],): #현재 접속중일때
                     msg = '!invite' #해당 클라이언트에 초대매세지 전송
                     send_msg(userInfo[j][0], msg)
+                    msg = '!find' #찾았다고 알려줌
+                    send_msg(userInfo[i][0], msg)
                     recv = recv_msg(userInfo[j][0])
                     print('recv: '+recv)
                     if recv == '!ok': #초대 수락시
@@ -159,22 +161,24 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
             userID=c.fetchone()
             print(userID)
             for j in range(0, usercnt):
-                if userID == (userInfo[j][1],):
+                if userID == (userInfo[j][1],):  #현재 접속중일때
                     msg = '!invite'
-                    send_msg(userInfo[j][0], msg)
+                    send_msg(userInfo[j][0], msg) #해당 클라이언트에 초대매세지 전송
+                    msg = '!find' #찾았다고 알려줌
+                    send_msg(userInfo[i][0], msg)
                     recv = recv_msg(userInfo[j][0])
                     print('recv: '+recv)
-                    if recv == '!ok':
+                    if recv == '!ok': #초대 수락시
                         userInfo[i][3] = 1
                         userInfo[j][3] = 1
                         print(userInfo[i][3], userInfo[j][3])
                         print('succes')
                         #chat(i, name)
-                    elif recv == '!no':
+                    elif recv == '!no': #초대 거절시
                         msg = '!no'
                         send_msg(userInfo[i][0], msg)    
                     break
-                else:
+                else: #접속중이 아닐때
                     msg="!can't find"
                     send_msg(sock, msg)
                     print('fail')
@@ -260,7 +264,7 @@ if __name__=='__main__':
     while True:
         client_socket, addr = server_socket.accept()
         
-        # userInfo.insert(usercnt, [client_socket, 0, 0, 0]) #sock, ID, type, 채팅속성
+        # userInfo.insert(usercnt, [client_socket, 0, 0, 0]) #sock, ID, type, 채팅속성 접속시 저장
         # usercnt += 1
         
         t=threading.Thread(target=handleclnt, args=(client_socket,))
