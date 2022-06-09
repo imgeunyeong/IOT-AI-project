@@ -144,7 +144,7 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
             print(userID)
             
         for j in range(0, usercnt):
-            if userID == (userInfo[i][1],): #현재 접속중일때
+            if userID == (userInfo[i][1],) and userInfo[i][0] != sock: #현재 접속중일때
                 msg = '!invite' #해당 클라이언트에 초대매세지 전송
                 send_msg(userInfo[i][0], msg)
                 msg = '!find' #찾았다고 알려줌
