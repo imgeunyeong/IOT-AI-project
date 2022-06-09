@@ -16,17 +16,34 @@ def getcon(): #db와 연결 함수
     c=con.cursor()
     return con, c
 
-def recv_msg(clnt_sock): #메세지 수신
+def recv_msg(sock): #메세지 수신
     sys.stdout.flush()  # 버퍼 비우기
-    clnt_msg = clnt_sock.recv(BUFSIZE)  # 메세지 받아오기
+    clnt_msg = sock.recv(BUFSIZE)  # 메세지 받아오기
     clnt_msg = clnt_msg.decode()  # 디코딩
     return clnt_msg
 
 
-def send_msg(clnt_sock, msg): #메세지 송신
+def send_msg(sock, msg): #메세지 송신
     sys.stdin.flush()  # 버퍼 비우기
     msg = msg.encode()  # 인코딩
-    clnt_sock.send(msg)  # 메세지 보내기
+    sock.send(msg)  # 메세지 보내기
+
+def findNum(sock):
+    for i in range(0, usercnt):
+        if userInfo[i][0] == sock:
+            break
+    return i
+
+def delete_userInfo(sock):
+    global usercnt
+    for i in range(0, usercnt):
+        if sock == userInfo[i][0]: #종료요청한 클라이언트 찾기
+            print('exit: '+i)
+            while i <usercnt-1: #종료한 클라이언트 뒤의 클라이언트 정보 한칸씩 당겨오기
+                userInfo[i]=userInfo[i+1]
+                i+=1
+            break
+    usercnt-=1 #종료했으니 총 유저수 -1
    
 def signup(sock): #회원가입 처리 함수
     con, c = getcon()
@@ -55,6 +72,7 @@ def login(sock): #로그인 처리 함수
     while True:
         lock.acquire()
         data = recv_msg(sock)
+        clnt_num = findNum(sock)
         print('data: '+data)
         userdata = data.split('/') # /기준으로 문자열 나누기
         print('data[2]: '+userdata[2])
@@ -67,6 +85,8 @@ def login(sock): #로그인 처리 함수
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/tea'
                 send_msg(sock, msg) #성공시 !ok 보내기
+                # userInfo[clnt_num][1] = userdata[0] #연결했을때 저장한 데이터 수정
+                # userInfo[clnt_num][2] = userdata[2]
                 userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성
                 usercnt += 1
                 print('sucess 로그인: ')
@@ -85,6 +105,8 @@ def login(sock): #로그인 처리 함수
             if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
                 msg='!ok/stu'
                 send_msg(sock, msg) #성공시 !ok 보내기
+                # userInfo[clnt_num][1] = userdata[0] #연결했을때 저장한 데이터 수정
+                # userInfo[clnt_num][2] = userdata[2]
                 userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성
                 usercnt += 1
                 print('sucess 로그인: ')
@@ -103,9 +125,9 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
     lock.acquire()
     for i in range(0, usercnt):
         if userInfo[i][0] == sock and userInfo[i][2] == 'stu': #학생이 요청시
-            data= recv_msg(sock) #상담요청할 선생님 이름 받기
-            print('data: '+data)
-            c.execute('select ID from teacherInfo where Name = ?', (data,)) #db에서 해당 이름 ID찾기
+            name= recv_msg(sock) #상담요청할 선생님 이름 받기
+            print('name: '+name)
+            c.execute('select ID from teacherInfo where Name = ?', (name,)) #db에서 해당 이름 ID찾기
             userID=c.fetchone()
             print(userID)
             for j in range(0, usercnt):
@@ -119,8 +141,7 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
                         userInfo[j][3] = 1
                         print(userInfo[i][3], userInfo[j][3])
                         print('succes')
-                        #chat(userInfo[i][0])
-                        #chat(userInfo[j][0])
+                        #chat(i, name)
                     elif recv == '!no': #초대 거절시
                         msg = '!no'
                         send_msg(userInfo[i][0], msg)    
@@ -132,9 +153,9 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
                     break
             
         elif userInfo[i][0] == sock and userInfo[i][2] == 'tea': #선생님이 요청시
-            data= recv_msg(sock) #상담요청할 학생 이름 받기 
-            print('data: '+data)
-            c.execute('select ID from studentInfo where Name = ?', (data,))
+            name= recv_msg(sock) #상담요청할 학생 이름 받기 
+            print('data: '+name)
+            c.execute('select ID from studentInfo where Name = ?', (name,))
             userID=c.fetchone()
             print(userID)
             for j in range(0, usercnt):
@@ -148,8 +169,7 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
                         userInfo[j][3] = 1
                         print(userInfo[i][3], userInfo[j][3])
                         print('succes')
-                        #chat(userInfo[i][0])
-                        #chat(userInfo[j][0])
+                        #chat(i, name)
                     elif recv == '!no':
                         msg = '!no'
                         send_msg(userInfo[i][0], msg)    
@@ -162,19 +182,53 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
                   
         break
     lock.release()    
-def chat(sock):
+def chat(clnt_num, name):
     #상담 시작한 클라이언트 소켓 받아오고
     #해당 소켓들의 메세지 받아서 다시 보내준다....?
-    #수정중
+    #안될거 같은데 해보고 안되면 수정
     while True:
         lock.acquire()
-        data=recv_msg(sock)
-        print('data: '+data)
-        userdata = data.split('/') # /기준으로 문자열 나누기
-        print('data[1]: '+userdata[1])
-        if userdata[1] == '!quit':
-            send_msg
+        msg=recv_msg(userInfo[clnt_num][0])
+        print('msg: '+msg)
+        splitmsg = msg.split('/') # /기준으로 문자열 나누기
+        if msg == '!quit':
+            for i in range(0, len(userInfo)):
+                if userInfo[clnt_num][3] == userInfo[i][3]:
+                    msg='!exit'
+                    send_msg(userInfo[i][3], msg)
+        else:
+            for i in range(0, len(userInfo)):
+                if userInfo[clnt_num][3] == userInfo[i][3]:
+                    msg=name+msg
+                    send_msg(userInfo[i][3], msg)
         lock.release()
+
+def QnA(sock):
+    clnt_num = findNum(sock)
+    con, c = getcon()
+    if userInfo[clnt_num][2] == 'stu': # 학생일때
+        print('아 할꺼')
+        #등록된 질문 목록 보여주고
+        #새질문 등록시 !update같이 받고
+        #잘라서 질문만 등록....?
+        #답변 확인시 해당 질문에 대한 답변만 보여줌?
+    elif userInfo[clnt_num][2] == 'tea': #선생님일때
+        print('많다')
+        #등록된 질문 보여주고
+        #답변 등록시 !update같이 받고
+        #잘라서 답변만 등록....?
+
+def updateQuestion(sock):
+    clnt_num = findNum(sock)
+    con, c = getcon()
+    if userInfo[clnt_num][2] == 'stu': # 학생일때
+        print('어디 학생이 문제를 출제할라하냐')
+        #!no매세지 보내기
+        msg = '!no'
+        send_msg(sock, msg)
+        return
+    elif userInfo[clnt_num][2] == 'tea': #선생님일때
+        print('잘난 선생님 문제나 내보세요')
 
 def handleclnt(sock): # 클라정보 수신 스레드
     while True:
@@ -186,6 +240,12 @@ def handleclnt(sock): # 클라정보 수신 스레드
             login(sock)
         elif data == '!chat': #!chat 받으면 상담모드 변경 함수 실행
             chatmode(sock)
+        elif data == '!Q&A':# Q&A 받으면 Q&A 함수 실행
+            QnA(sock)
+        elif data == '!question': #!question받으면 문제출제 함수 실행
+            updateQuestion(sock)
+        elif data == '!quit': #!quit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
+            delete_userInfo(sock)
         elif not data:
             break
 
@@ -199,6 +259,9 @@ if __name__=='__main__':
 
     while True:
         client_socket, addr = server_socket.accept()
+        
+        # userInfo.insert(usercnt, [client_socket, 0, 0, 0]) #sock, ID, type, 채팅속성
+        # usercnt += 1
         
         t=threading.Thread(target=handleclnt, args=(client_socket,))
         t.start()
