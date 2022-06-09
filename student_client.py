@@ -72,14 +72,16 @@ class regit(QDialog): #가입창
         self.regit_button.clicked.connect(self.check_pw) #이게 눌렀을떄 연결임
                
 
-    def check_id(self): 
-        id=self.idbar.text() #텍스트창에입력된거 id에 넣고
-        sock.send(id.encode()) #서버에 아이디 보내고 중복확인받기 
-        ck=sock.recv(1024)
-        if ck=='!ok': #서버에서 !ok보내면
+    def check_id(self):
+        id = self.idbar.text()  # 텍스트창에입력된거 id에 넣고
+        sock.send(id.encode())  # 서버에 아이디 보내고 중복확인받기
+        ck = sock.recv(1024).decode()
+        print(ck)
+        if ck == '!ok':  # 서버에서 !ok보내면
             QMessageBox.information(self, 'Message', '사용 가능한 아이디입니다')
-
-        else: QMessageBox.warning(self, 'Warning', '중복된 아이디입니다')
+            self.regit_button.setEnabled(True)
+        else:
+            QMessageBox.warning(self, 'Warning', '중복된 아이디입니다')
 
     def check_pw(self):
         id=self.idbar.text()
@@ -164,20 +166,43 @@ class studentui(QMainWindow):
             self.counseling_browser.append(a)
 
     def send_msg(self): # 서버로 실시간 상담 메시지를 보냄
-        self.counseling_browser.append(self.counseling_line.text())
-        sock.send(self.counseling_line.text().encode())
-        self.counseling_line.clear()
+        if self.counseling_line.text() == '':
+            pass
+        else:
+            self.counseling_browser.append(self.counseling_line.text())
+            sock.send(self.counseling_line.text().encode())
+            self.counseling_line.clear()
+
+    def quiz_page(self): # 퀴즈 페이지로 넘어가면서 문제 할당
+        self.stackedWidget.setCurrentIndex(2)
+
+    def upload_question(self): # 데이터 베이스에서 가져와야 함 (임시로 리스트 생성)
+        self.stackedWidget.setCurrentIndex(3)
+        q_stack = 0
+        con = sqlite3.connect("stu_client.db")
+        with con:
+            cur = con.cursor()
+            rows = cur.execute('select * from qna')
+            for row in rows:
+                self.qna_widget.setRowCount((q_stack + 1))
+                changetype = list(row)
+                for j in range(2):
+                    self.qna_widget.setItem(q_stack, j, QTableWidgetItem(str(changetype[j])))
+                q_stack += 1
+
+
 
     def button_click(self): # 클릭 작용 함수 모음
         self.study_button.clicked.connect(self.widget_append)
-        self.quiz_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(2))
-        self.question_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
+        self.quiz_button.clicked.connect(self.quiz_page)
+        self.question_button.clicked.connect(self.upload_question)
         self.chatroom_button.clicked.connect(self.enter_chatroom)
         self.back_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.counseling_line.returnPressed.connect(self.send_msg)
+
         header = self.study_widget.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -187,8 +212,9 @@ class studentui(QMainWindow):
         header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
         self.quiz_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.qna_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-   
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     login1 = login() #?

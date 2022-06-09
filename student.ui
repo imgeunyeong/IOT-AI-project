@@ -368,27 +368,6 @@ background-color:lavender;</string>
      </widget>
     </widget>
     <widget class="QWidget" name="page_3">
-     <widget class="QTextBrowser" name="quiz_browser">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>90</y>
-        <width>661</width>
-        <height>451</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">color:black;
-background-color:lavender;</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="back_button_2">
       <property name="geometry">
        <rect>
@@ -416,7 +395,7 @@ background-color:lavender;</string>
      <widget class="QLabel" name="label_3">
       <property name="geometry">
        <rect>
-        <x>120</x>
+        <x>90</x>
         <y>20</y>
         <width>111</width>
         <height>51</height>
@@ -440,61 +419,57 @@ background-color:lavender;</string>
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLineEdit" name="quiz_line">
+     <widget class="QTableWidget" name="quiz_widget">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>590</y>
-        <width>501</width>
-        <height>51</height>
+        <x>90</x>
+        <y>90</y>
+        <width>801</width>
+        <height>501</height>
        </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
       </property>
       <property name="styleSheet">
        <string notr="true">color:black;
 background-color:lavender;</string>
       </property>
+      <column>
+       <property name="text">
+        <string>QUIZ</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>답</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
      </widget>
-     <widget class="QLabel" name="label_4">
+     <widget class="QPushButton" name="quiz_complete_btn">
       <property name="geometry">
        <rect>
-        <x>120</x>
-        <y>550</y>
-        <width>221</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">color:blue;
-background-color:lavender;</string>
-      </property>
-      <property name="text">
-       <string>입력 후 버튼 클릭 또는 엔터</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton">
-      <property name="geometry">
-       <rect>
-        <x>630</x>
-        <y>590</y>
-        <width>101</width>
-        <height>51</height>
+        <x>90</x>
+        <y>610</y>
+        <width>111</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="font">
@@ -509,7 +484,7 @@ background-color:lavender;</string>
 background-color:lavender;</string>
       </property>
       <property name="text">
-       <string>입력</string>
+       <string>제출</string>
       </property>
      </widget>
     </widget>
@@ -563,27 +538,6 @@ background-color:lavender;</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QTextBrowser" name="qna_browser">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>90</y>
-        <width>661</width>
-        <height>451</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">color:black;
-background-color:lavender;</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="qna_line">
@@ -657,6 +611,50 @@ background-color:lavender;</string>
       <property name="text">
        <string>등록</string>
       </property>
+     </widget>
+     <widget class="QTableWidget" name="qna_widget">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>80</y>
+        <width>721</width>
+        <height>461</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
+      <column>
+       <property name="text">
+        <string>질문 (Q)</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>답장 (A)</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>13</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
      </widget>
     </widget>
     <widget class="QWidget" name="page_5">
