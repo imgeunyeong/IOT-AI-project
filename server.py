@@ -6,7 +6,7 @@ import sys
 
 BUFSIZE = 1024 #버퍼사이즈
 host = '10.10.20.33' 
-port = 9015
+port = 9020
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
 lock=threading.Lock()
@@ -69,129 +69,97 @@ def login(sock): #로그인 처리 함수
     global usercnt
     con, c = getcon()
     
+    #lock.acquire()
     while True:
-        lock.acquire()
         data = recv_msg(sock)
         #clnt_num = findNum(sock)
         print('data: '+data)
         userdata = data.split('/') # /기준으로 문자열 나누기
         print('data[2]: '+userdata[2])
+        
         if userdata[2] == 'tea': #선생님
             print('userID: '+userdata[0])
             print('userPW: '+userdata[1])
             c.execute('select PW from teacherInfo where ID = ?', (userdata[0],)) #선생 테이블에서 정보 찾기
             dbPW = c.fetchone()
             print(dbPW)
-            if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
-                msg='!ok/tea'
-                send_msg(sock, msg) #성공시 !ok 보내기
-                # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
-                # userInfo[clnt_num][2] = userdata[2]
-                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성 로그인시 저장
-                usercnt += 1
-                print('sucess 로그인: ')
-                print(userInfo[usercnt-1])
-                break
-            else:
-                msg='!no/tea'
-                send_msg(sock, msg) #실패시 !no 보내기
-                print('fail')
-                continue   
-        if userdata[2] == 'stu': #학생
+        elif userdata[2] == 'stu': #학생
             print('userID: '+userdata[0])
             print('userPW: '+userdata[1])
-            c.execute('select PW from studentInfo where ID = ?', (userdata[0],)) #선생 테이블에서 정보 찾기
+            c.execute('select PW from studentInfo where ID = ?', (userdata[0],)) #학생 테이블에서 정보 찾기
             dbPW = c.fetchone()
-            if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
-                msg='!ok/stu'
-                send_msg(sock, msg) #성공시 !ok 보내기
-                # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
-                # userInfo[clnt_num][2] = userdata[2]
-                userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성 로그인시 저장
-                usercnt += 1
-                print('sucess 로그인: ')
-                print(userInfo[usercnt-1])
-                break
-            else:
-                msg='!no/stu'
-                send_msg(sock, msg) #실패시 !no 보내기
-                print('fail')
-                continue
-        lock.release()   
-        break
+            
+        if (userdata[1],) == dbPW: #찾은 정보랑 입력이랑 일치시
+            msg='!ok/tea'
+            send_msg(sock, msg) #성공시 !ok 보내기
+            # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
+            # userInfo[clnt_num][2] = userdata[2]
+            userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성 로그인시 저장
+            usercnt += 1
+            print('sucess 로그인: ')
+            print(userInfo[usercnt-1])
+            break
+        else:
+            msg='!no/tea'
+            send_msg(sock, msg) #실패시 !no 보내기
+            print('fail')
+            continue   
+    #lock.release()   
+
 # 오류 발견시 수정해야 할 듯
 def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변경
     con, c = getcon()
-    lock.acquire()
+    #lock.acquire()
+    #while True:
     for i in range(0, usercnt):
         if userInfo[i][0] == sock and userInfo[i][2] == 'stu': #학생이 요청시
+            print('학생')
             name= recv_msg(sock) #상담요청할 선생님 이름 받기
             print('name: '+name)
             c.execute('select ID from teacherInfo where Name = ?', (name,)) #db에서 해당 이름 ID찾기
             userID=c.fetchone()
             print(userID)
-            for j in range(0, usercnt):
-                if userID == (userInfo[j][1],): #현재 접속중일때
-                    msg = '!invite' #해당 클라이언트에 초대매세지 전송
-                    send_msg(userInfo[j][0], msg)
-                    msg = '!find' #찾았다고 알려줌
-                    send_msg(userInfo[i][0], msg)
-                    recv = recv_msg(userInfo[j][0])
-                    print('recv: '+recv)
-                    if recv == '!ok': #초대 수락시
-                        userInfo[i][3] = 1
-                        userInfo[j][3] = 1
-                        print(userInfo[i][3], userInfo[j][3])
-                        print('succes')
-                        #chat(i, name)
-                    elif recv == '!no': #초대 거절시
-                        msg = '!no'
-                        send_msg(userInfo[i][0], msg)    
-                    break
-                else: #접속중이 아닐때
-                    print('fail')
-                    msg ="can't find"
-                    send_msg(sock, msg)
-                    break
-            
         elif userInfo[i][0] == sock and userInfo[i][2] == 'tea': #선생님이 요청시
+            print('선생')
             name= recv_msg(sock) #상담요청할 학생 이름 받기 
-            print('data: '+name)
+            print('name: '+name)
             c.execute('select ID from studentInfo where Name = ?', (name,))
             userID=c.fetchone()
             print(userID)
-            for j in range(0, usercnt):
-                if userID == (userInfo[j][1],):  #현재 접속중일때
-                    msg = '!invite'
-                    send_msg(userInfo[j][0], msg) #해당 클라이언트에 초대매세지 전송
-                    msg = '!find' #찾았다고 알려줌
-                    send_msg(userInfo[i][0], msg)
-                    recv = recv_msg(userInfo[j][0])
-                    print('recv: '+recv)
-                    if recv == '!ok': #초대 수락시
-                        userInfo[i][3] = 1
-                        userInfo[j][3] = 1
-                        print(userInfo[i][3], userInfo[j][3])
-                        print('succes')
-                        #chat(i, name)
-                    elif recv == '!no': #초대 거절시
-                        msg = '!no'
-                        send_msg(userInfo[i][0], msg)    
-                    break
-                else: #접속중이 아닐때
-                    msg="!can't find"
-                    send_msg(sock, msg)
-                    print('fail')
-                    break
-                  
-        break
-    lock.release()    
+            
+        for j in range(0, usercnt):
+            if userID == (userInfo[j][1],): #현재 접속중일때
+                msg = '!invite' #해당 클라이언트에 초대매세지 전송
+                send_msg(userInfo[j][0], msg)
+                msg = '!find' #찾았다고 알려줌
+                send_msg(userInfo[i][0], msg)
+                recv = recv_msg(userInfo[j][0])
+                print('recv: '+recv)
+                if recv == '!ok': #초대 수락시
+                    userInfo[i][3] = 1
+                    userInfo[j][3] = 1
+                    print(userInfo[i][3], userInfo[j][3])
+                    print('succes')
+                    chat(i, name)
+                elif recv == '!no': #초대 거절시
+                    msg = '!no'
+                    send_msg(userInfo[i][0], msg)    
+                    return
+            else: #접속중이 아닐때
+                print('fail')
+                msg ="can't find"
+                send_msg(sock, msg)
+                break
+            
+    #lock.release()  
+                        
+      
 def chat(clnt_num, name):
     #상담 시작한 클라이언트 소켓 받아오고
     #해당 소켓들의 메세지 받아서 다시 보내준다....?
     #안될거 같은데 해보고 안되면 수정
     while True:
-        lock.acquire()
+        #lock.acquire()
         msg=recv_msg(userInfo[clnt_num][0])
         print('msg: '+msg)
         splitmsg = msg.split('/') # /기준으로 문자열 나누기
@@ -205,7 +173,7 @@ def chat(clnt_num, name):
                 if userInfo[clnt_num][3] == userInfo[i][3]:
                     msg=name+msg
                     send_msg(userInfo[i][3], msg)
-        lock.release()
+        #lock.release()
 
 def QnA(sock):
     clnt_num = findNum(sock)
