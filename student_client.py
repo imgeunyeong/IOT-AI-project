@@ -8,7 +8,8 @@ import socket
 from threading import*
 import sqlite3
 
-sock=socket.create_connection(('127.0.0.1',9016))
+
+sock=socket.create_connection(('127.0.0.1',9020))
 
 
 
@@ -74,7 +75,7 @@ class regit(QDialog): #가입창
     def check_id(self): 
         id=self.idbar.text() #텍스트창에입력된거 id에 넣고
         sock.send(id.encode()) #서버에 아이디 보내고 중복확인받기 
-        ck=sock.recv()
+        ck=sock.recv(1024)
         if ck=='!ok': #서버에서 !ok보내면
             QMessageBox.information(self, 'Message', '사용 가능한 아이디입니다')
 
@@ -119,9 +120,10 @@ class studentui(QMainWindow):
         self.stu_ui=uic.loadUi("student.ui",self)
         self.setWindowTitle("학습(학생용)")
         self.button_click()
+        self.icon = QIcon('talk.png')
+        self.setWindowIcon(self.icon)
 
-
-    def widget_append(self):
+    def widget_append(self): # 학습자료 추가
         self.stackedWidget.setCurrentIndex(1)
         i = 0
         con = sqlite3.connect("stu_client.db")
@@ -131,21 +133,35 @@ class studentui(QMainWindow):
             for row in rows:
                 self.study_widget.setRowCount((i + 1))
                 changetype = list(row)
-                print(changetype)
                 for j in range(7):
                     self.study_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
                 i += 1
 
-    def enter_chatroom(self):
+    def enter_chatroom(self): # 채팅방으로 이동 및 상담 받고싶은 선생님 입력
         self.stackedWidget.setCurrentIndex(4)
-        sock.send('!chat'.encode())
         super().__init__()
         self.setWindowTitle("상담하고 싶은 선생님 입력 후 ENTER")
         self.setGeometry(400, 400, 400, 100)
-        choice_teacher = QLineEdit(self)
-        choice_teacher.setGeometry(60, 25, 280, 50)
-        choice_teacher.setFont(QFont('Ubuntu', 14))
+        self.setStyleSheet("color: rgb(131, 56, 236); background-color: qlineargradient(spread:pad, x1:0.125, y1:0.892227, x2:0.865, y2:0.130727, stop:0.208333 rgba(128, 106, 174, 255), stop:0.645833 rgba(204, 106, 201, 255));border: 1.5px solid rgb(58, 134, 255);border-radius: 5px;")
+        self.choice_teacher = QLineEdit(self)
+        self.choice_teacher.setGeometry(60, 25, 280, 50)
+        self.choice_teacher.setFont(QFont('Ubuntu', 14))
+        self.choice_teacher.setStyleSheet("color:black;background-color:lavender;")
+        self.choice_teacher.returnPressed.connect(self.send_msg)
         self.show()
+
+    def send_msg(self): # 서버로 실시간 상담 접속 정보를 보냄
+        self.close()
+        sock.send('!chat'.encode())
+        sock.send(f'{self.choice_teacher.text()}'.encode())
+        self.counseling_browser.append("선생님을 기다리는중...")
+        tea_msg = Thread(target=self.recv_msg, args=(sock,))
+        tea_msg.start()
+
+    def recv_msg(self): # 서버에서 실시간 상담 메시지를 받음
+        while True:
+            a = sock.recv(1024).decode()
+            self.counseling_browser.append(a)
 
     def button_click(self): # 클릭 작용 함수 모음
         self.study_button.clicked.connect(self.widget_append)
@@ -157,6 +173,7 @@ class studentui(QMainWindow):
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.quiz_line.returnPressed.connect(lambda:self.quiz_browser.append(self.quiz_line.text()))  # 수정 할 예정
+        self.counseling_line.returnPressed.connect(lambda:sock.send(self.counseling_line.text().encode()))
         header = self.study_widget.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
