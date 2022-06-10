@@ -178,24 +178,52 @@ class studentui(QMainWindow):
 
     def quiz_page(self): # 문제만 할당하고 Db에 있는 문제와 답이 일치 할 때 정답처리 리스트에 넣어서 해야하나?
         self.stackedWidget.setCurrentIndex(2)
+        sock.send('!question'.encode()) # 서버로 신호 전송
 
-    def upload_question(self): # 데이터 베이스에서 가져와야 함 질문을 학생 데이터베이스에 저장하면서 서버로 보내고 서버에서는 답변을 받아와서 데이터베이스에 추가를 하면서 테이블 위젯에 띄우기
+    def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
+        self.stackedWidget.setCurrentIndex(3)
+        sock.send('!Q&A'.encode())
+
+    def upload_question(self): # 질문 학생이 입력시 학생 DB에 저장하면서 서버로 질문을 보내고 테이블 위젯 최신화 (서버에서 답 받아오면 DB에 추가하고 다시 최신화 해야함)
+        i = 0
         con = sqlite3.connect('stu_client.db')
-        cur = con.cursor()
-        cur.execute(f'insert into qna (question) value ({self.qna_line.text()}')
-        con.commit()
-        con.close()
+        with con:
+            cur = con.cursor()
+            cur.execute(f'insert into qna values ("{self.qna_line.text()}", " ")')
+            rows = cur.execute('select * from qna')
+            for row in rows:
+                self.qna_widget.setRowCount((i + 1))
+                changetype = list(row)
+                for j in range(2):
+                    self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
+                i += 1
+        sock.send(self.qna_line.text().encode())
+        self.qna_line.clear()
+
+    def reload(self): # qna 창 새로고침 함수
+        i = 0
+        con = sqlite3.connect('stu_client.db')
+        with con:
+            cur = con.cursor()
+            rows = cur.execute('select * from qna')
+            for row in rows:
+                self.qna_widget.setRowCount((i + 1))
+                changetype = list(row)
+                for j in range(2):
+                    self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
+                i += 1
 
     def button_click(self): # 여러가지 반응 작용 함수 모음집
         self.study_button.clicked.connect(self.widget_append)
         self.quiz_button.clicked.connect(self.quiz_page)
-        self.question_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
+        self.question_button.clicked.connect(self.qna_page)
         self.chatroom_button.clicked.connect(self.enter_chatroom)
         self.qna_line.returnPressed.connect(self.upload_question)
         self.back_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
+        self.reload_btn.clicked.connect(self.reload)
         self.counseling_line.returnPressed.connect(self.send_msg)
 
         header = self.study_widget.horizontalHeader()
