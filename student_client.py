@@ -125,8 +125,12 @@ class studentui(QMainWindow): # 학생 ui
         self.button_click() # 여러가지 작용 함수 더미
         self.icon = QIcon('talk.png') # 프로그램 아이콘 추가 (토크* 에서 가져온 아이콘) (png 파일 없으면 안뜸)
         self.setWindowIcon(self.icon)
-        self.study_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # 학습 테이블 위젯 수정 불가하게 설정
-        self.qna_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # qna 테이블 위젯 수정 불가하게 설정
+        self.study_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # 학습 테이블 위젯 읽기 모드로 변경 (수정모드로 바꾸려면 NoEdit --> AllEdit 으로 변경)
+        self.qna_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # qna 테이블 위젯 읽기 모드로 변경
+        self.quiz_list = [] # 퀴즈 문제 담기용 리스트
+        self.answer_list = [] # 퀴즈 답 담기용 리스트
+        self.final_answer_list = [] # 학생이 적은 답 담기 리스트
+        self.score = 0
 
     def widget_append(self): # 학습자료 추가
         self.stackedWidget.setCurrentIndex(1)
@@ -181,6 +185,42 @@ class studentui(QMainWindow): # 학생 ui
     def quiz_page(self): # 문제만 할당하고 Db에 있는 문제와 답이 일치 할 때 정답처리 리스트에 넣어서 해야하나?
         self.stackedWidget.setCurrentIndex(2)
         sock.send('!question'.encode()) # 서버로 신호 전송
+        self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
+
+    def quiz_start(self): # 시작 버튼 누르면 퀴즈 할당
+        self.quiz_start_btn.setEnabled(False) # 시작 버튼 비활성화 # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
+        self.quiz_complete_btn.setEnabled(True) # 제출 버튼 활성화
+        i = 0
+        con = sqlite3.connect('stu_client.db')
+        with con:
+            cur = con.cursor()
+            rows = cur.execute('select * from quiz')
+            for row in rows:
+                self.quiz_widget.setRowCount((i + 1))
+                changetype = list(row)
+                self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
+                self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
+                print(self.answer_list)
+                for j in range(1):
+                    self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
+                i += 1
+
+    def complete(self): # 문제 풀이 후 제출 완료
+        self.quiz_start_btn.setEnabled(True)  # 시작 버튼 활성화    # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
+        self.quiz_complete_btn.setEnabled(False)  # 제출 버튼 비활성화
+        for i in range(self.quiz_widget.rowCount()): # 퀴즈 위젯의 열 카운트
+            answer = self.quiz_widget.item(i, 1) # 퀴즈 위젯에 적은 답을 가져옴
+            try:
+                final_ans = answer.text() # 텍스트로 변경 후 지정
+                self.final_answer_list.append(final_ans) # 텍스트로 변경 된 답 리스트에 추가
+            except:
+                self.final_answer_list.append('') # 추가할 답이 없다면 빈칸으로 리스트에 추가 (없으면 오류 남)
+            if self.answer_list[i] == self.final_answer_list[i]: # 문제 할당 할 때 넣어놓은 답 리스트와 학생이 적은 답 리스트 비교
+                print(f'{i + 1}번 정답')
+                self.score += 5  # 20문제 기준 1문제 당 5점 추가
+                self.lcdNumber.display(self.score) # 점수 표시
+            else:
+                print(f'{i + 1}번 오답') # 오답이야~
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
         self.stackedWidget.setCurrentIndex(3)
@@ -199,7 +239,7 @@ class studentui(QMainWindow): # 학생 ui
                 for j in range(2):
                     self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
                 i += 1
-        sock.send(self.qna_line.text().encode())
+        sock.send(self.qna_line.text().encode()) # 질문 내용 서버로 전송
         self.qna_line.clear()
 
     def reload(self): # qna 창 새로고침 함수 (서버에서 받아온 값 추가 되었을 때 새로고침)
@@ -215,18 +255,23 @@ class studentui(QMainWindow): # 학생 ui
                     self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
                 i += 1
 
+    def test(self): # 테스트용 함수
+        print("test1")
+
     def button_click(self): # 여러가지 반응 작용 함수 모음집
         self.study_button.clicked.connect(self.widget_append)
         self.quiz_button.clicked.connect(self.quiz_page)
         self.question_button.clicked.connect(self.qna_page)
         self.chatroom_button.clicked.connect(self.enter_chatroom)
         self.qna_line.returnPressed.connect(self.upload_question)
+        self.quiz_complete_btn.clicked.connect(self.complete)
         self.back_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0)) # 흔들리지 않는 편안함 lambda
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.reload_btn.clicked.connect(self.reload)
         self.counseling_line.returnPressed.connect(self.send_msg)
+        self.quiz_complete_btn.setEnabled(False) # 퀴즈 시작 버튼 누르기 전까지 제출버튼 비활성화
 
         header = self.study_widget.horizontalHeader()  # 수평 헤더 반환 # 학습하기 자료 각 칼럼 가장 긴 자료 기준으로 늘림
         header.setSectionResizeMode(0, QHeaderView.Stretch)
