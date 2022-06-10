@@ -51,14 +51,14 @@ def signup(sock): #회원가입 처리 함수
     while True:
         data = recv_msg(sock) #ID 받기
         print('data: '+data)
-        c.execute('select teacherInfo.ID, studentInfo.ID from teacherInfo inner join studentInfo on teacherInfo.ID = studentInfo.ID') #db에서 해당 아이디 있나 중복확인
+        c.execute('select t.ID, s.ID from teacherInfo t, studentInfo s where t.ID = ? or s.Id = ?',(data,data)) #db에서 해당 아이디 있나 중복확인
         find = c.fetchone()       
         print(find)
         if find == None: #중복없으면
-            send_msg(sock, '!ok/serv') #클라한테 메세지 전송
+            send_msg(sock, '!ok') #클라한테 메세지 전송
             break
         else:
-            send_msg(sock, '!no/serv') #클라한테 메세지 전송
+            send_msg(sock, '!no') #클라한테 메세지 전송
             continue #아이디 다시 받기
     data = recv_msg(sock) #/구분자로 ID, PW, Name, type 받기
     print('data: '+data)
@@ -119,7 +119,7 @@ def login(sock): #로그인 처리 함수
             con.close()
             break
         else:
-            send_msg(sock, '!no/tea/serv') #실패시 !no 보내기
+            send_msg(sock, '!no/tea') #실패시 !no 보내기
             print('fail')
             continue   
     #lock.release()   
@@ -157,14 +157,15 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
     for i in range(0, usercnt):
         if userInfo[i][1] == find and userInfo[i][3] == 0: #찾은사람이 온라인이고 채팅중이 아닐때
             send_msg(userInfo[i][0], '!invite/serv') #초대메세지 전송
-            recv=recv_msg(userInfo[i][0])           
-            if recv == '!ok/serv': #초대 수락시
+            recv=recv_msg(userInfo[i][0])
+            print(recv)           
+            if recv == '!ok': #초대 수락시
                 userInfo[clnt_num][3] = 1 #채팅모드 변경
                 userInfo[i][3] = 1
                 chat(clnt_num)
                 con.close()
                 return
-            elif recv == '!no/serv': #초대 거부시
+            elif recv == '!no': #초대 거부시
                 send_msg(userInfo[clnt_num][0], '!no/serv') #클라한테 메세지 전송
                 con.close()
                 return                                  
@@ -215,7 +216,7 @@ def updateQuestion(sock):
     con, c = getcon()
     if userInfo[clnt_num][2] == 'stu': # 학생일때
         print('학생')
-        send_msg(sock, '!no/serv') #메세지 보내기
+        send_msg(sock, '!no') #메세지 보내기
         return
     elif userInfo[clnt_num][2] == 'tea': #선생님일때
         print('선생님')
