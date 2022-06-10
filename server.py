@@ -1,3 +1,4 @@
+from collections import UserDict
 from concurrent.futures import thread
 import socket
 import threading
@@ -126,28 +127,28 @@ def login(sock): #로그인 처리 함수
 def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변경
     #필요시 수정
     con, c = getcon() #db 커서 가져오고
-    num = findNum(sock) #클라이언트 번호 가져오기
-    if userInfo[num][2] == 'tea': # 선생님
+    clnt_num = findNum(sock) #클라이언트 번호 가져오기
+    if userInfo[clnt_num][2] == 'tea': # 선생님
         print('선생님')
         name = recv_msg(sock) #학생이름 받아오기
         print('name: '+name)
         c.execute('select ID from studentInfo where Name = ?', (name,)) #학생이름으로 db에서 아이디 찾기
         find = c.fetchone()
         if not find: #찾는 사람이 없으면
-            send_msg(userInfo[num][0], '!no/serv') #클라한테 메세지전송
+            send_msg(userInfo[clnt_num][0], '!no/serv') #클라한테 메세지전송
             con.close()
             return
         find = ''.join(find) #문자열로 바꿔주고
         print(find)
         
-    elif userInfo[num][2] == 'stu':#학생
+    elif userInfo[clnt_num][2] == 'stu':#학생
         print('학생')
         name = recv_msg(sock) #선생님이름 받기
         print('name: '+name)
         c.execute('select ID from teacherInfo where Name = ?', (name,)) #선생님이름으로 db에서 ID 찾기
         find = c.fetchone()
         if not find: #없으면
-            send_msg(userInfo[num][0], '!no/serv') #클라한테 메세지 전송
+            send_msg(userInfo[clnt_num][0], '!no/serv') #클라한테 메세지 전송
             con.close()
             return
         find = ''.join(find) #문자열로 바꿔주고
@@ -158,17 +159,18 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
             send_msg(userInfo[i][0], '!invite/serv') #초대메세지 전송
             recv=recv_msg(userInfo[i][0])           
             if recv == '!ok/serv': #초대 수락시
-                userInfo[num][3] = 1 #채팅모드 변경
+                userInfo[clnt_num][3] = 1 #채팅모드 변경
                 userInfo[i][3] = 1
-                #chat(num)
+                chat(clnt_num)
                 con.close()
                 return
             elif recv == '!no/serv': #초대 거부시
-                send_msg(userInfo[num][0], '!no/serv') #클라한테 메세지 전송
-                con.close
+                send_msg(userInfo[clnt_num][0], '!no/serv') #클라한테 메세지 전송
+                con.close()
                 return                                  
       
-def chat(clnt_num): # 채팅 함수 수정중
+def chat(clnt_num): # 채팅 함수
+    #수정중
     con, c = getcon() #커서 획득
     type = userInfo[clnt_num][2] #선생님인지 학생인지 확인
     if type == 'tea': #선생님
@@ -180,7 +182,15 @@ def chat(clnt_num): # 채팅 함수 수정중
     print(name)
     while True:
         #lock.acquire()
-        break           
+        msg = recv_msg(userInfo[clnt_num][0])
+        if msg == '!quit':
+            userInfo[clnt_num][3] = 0
+            break
+        else:
+            for i in range(0, usercnt):
+                if userInfo[clnt_num][3] == userInfo[i][3]:
+                    send_msg(userInfo[i][0], name+':'+msg)
+                    break          
     con.close()
     return
         #lock.release()
@@ -204,15 +214,18 @@ def updateQuestion(sock):
     clnt_num = findNum(sock)
     con, c = getcon()
     if userInfo[clnt_num][2] == 'stu': # 학생일때
-        print('어디 학생이 문제를 출제할라하냐')
-        #!no매세지 보내기
-        msg = '!no'
-        send_msg(sock, msg)
+        print('학생')
+        send_msg(sock, '!no/serv') #메세지 보내기
         return
     elif userInfo[clnt_num][2] == 'tea': #선생님일때
-        print('잘난 선생님 문제나 내보세요')
+        print('선생님')
+        data = recv_msg(sock)
 
 def handleclnt(sock): # 클라정보 수신 스레드
+    if sock in userInfo:
+        clnt_num = findNum(sock)
+        if userInfo[clnt_num][3] == 1:
+            chat(clnt_num)
     while True:
         data = recv_msg(sock)
         print('data: '+data)
