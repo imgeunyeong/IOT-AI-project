@@ -10,6 +10,7 @@ host = '10.10.20.33'
 port = 9020
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
+QnAnum = 1
 lock=threading.Lock()
 
 def getcon(): #db와 연결 함수
@@ -125,7 +126,7 @@ def login(sock): #로그인 처리 함수
     #lock.release()   
 
 def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변경
-    #필요시 수정
+    #수정중
     con, c = getcon() #db 커서 가져오고
     clnt_num = findNum(sock) #클라이언트 번호 가져오기
     if userInfo[clnt_num][2] == 'tea': # 선생님
@@ -196,22 +197,41 @@ def chat(clnt_num): # 채팅 함수
     return
         #lock.release()
 
-def QnA(sock):
+def QnA(sock): #Q&A 등록 함수
+    #수정중
+    global QnAnum
     clnt_num = findNum(sock)
     con, c = getcon()
-    if userInfo[clnt_num][2] == 'stu': # 학생일때
-        print('아 할꺼')
-        #등록된 질문 목록 보여주고
-        #새질문 등록시 !update같이 받고
-        #잘라서 질문만 등록....?
-        #답변 확인시 해당 질문에 대한 답변만 보여줌?
-    elif userInfo[clnt_num][2] == 'tea': #선생님일때
-        print('많다')
-        #등록된 질문 보여주고
-        #답변 등록시 !update같이 받고
-        #잘라서 답변만 등록....?
+    QnAlist = []
+    c.execute('select * from QnA')
+    QnA = c.fetchall()
+    if QnA !=None: #등록된 Q&A가 있을때
+        for i in QnA:
+            i = list(i)
+            i[0] = str(i[0])
+            i = '/'.join(i) 
+            QnAlist.append(i)  
+        print(QnAlist)
+        send_msg(sock, QnAlist) #등록된 Q&A 리스트 보내주기
+    else:
+        send_msg(sock, '!no') #없으면 !no 보내기
+    while True:
+        msg = recv_msg(sock)
+        if msg == '!update':
+            if userInfo[clnt_num][2] == 'stu': # 학생일때
+                msg = recv_msg(sock) #등록할 질문 받기
+                c.execute('insert into QnA (Num, Question, Answer, studentID, teacherID) values (?, ?, ?, ?, ?)', (QnAnum, msg, None, userInfo[clnt_num][1], None)) #Q&A 테이블에 질문 등록
+                QnAnum+=1 #질문 등록후 번호+1
+            elif userInfo[clnt_num][2] == 'tea': #선생님일때
+                msg = recv_msg(sock) #등록할 답변과 질문 번호 받기
+                splitmsg = msg.split('/')
+                c.execute('update QnA set Answer = ? where Num = ?', (splitmsg[1], splitmsg[0],))
+        elif msg == '!quit':
+            con.close()
+            return
 
-def updateQuestion(sock):
+def updateQuestion(sock): #문제등록 함수
+    #수정중
     clnt_num = findNum(sock)
     con, c = getcon()
     if userInfo[clnt_num][2] == 'stu': # 학생일때
