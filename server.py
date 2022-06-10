@@ -11,6 +11,7 @@ port = 9020
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
 QnAnum = 1
+QuestionNum = 1
 lock=threading.Lock()
 
 def getcon(): #db와 연결 함수
@@ -232,6 +233,7 @@ def QnA(sock): #Q&A 등록 함수
 
 def updateQuestion(sock): #문제등록 함수
     #수정중
+    global QuestionNum
     clnt_num = findNum(sock)
     con, c = getcon()
     if userInfo[clnt_num][2] == 'stu': # 학생일때
@@ -240,7 +242,11 @@ def updateQuestion(sock): #문제등록 함수
         return
     elif userInfo[clnt_num][2] == 'tea': #선생님일때
         print('선생님')
-        data = recv_msg(sock)
+        Question = recv_msg(sock)
+        splitQuestion = Question.split('/')
+        c.execute('insert into QnA (Num, Question, Answer) values (?, ?, ?)', (QnAnum, splitQuestion[0], splitQuestion[1])) #Q&A 테이블에 질문 등록
+        QuestionNum+=1 #질문 등록후 번호+1
+        
 
 def handleclnt(sock): # 클라정보 수신 스레드
     if sock in userInfo:
