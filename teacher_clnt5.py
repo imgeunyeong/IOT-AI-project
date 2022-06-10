@@ -3,13 +3,12 @@ from os import ctermid
 from sqlite3 import dbapi2
 from PyQt5.QtWidgets import *
 from PyQt5 import uic #ui연결해주는 모듈
-from PyQt5.QtGui import*
 import sys
 import socket 
 import threading
 import time
 
-sock=socket.create_connection(('127.0.0.1',9026))
+sock=socket.create_connection(('10.10.20.33',9020))
 id=''
 serv_msg=''
 
@@ -146,21 +145,16 @@ class teacherui(QMainWindow):
 
     def chatroom(self):     
         self.stackedWidget.setCurrentIndex(4)
-        self.chat_invite_button.clicked.connect(self.invitemsg)#################팝업창
-        sock.sendall("!chat".encode()) 
-       
-
+        
+        sock.sendall("!chat".encode())
+       # sock.sendall('1003'.encode())  
         self.counseling_line.returnPressed.connect(self.send) #학생이름 서버에 보내고
-        #serv_msg=sock.recv(1024).decode()
-        print(f'메세지 확인: {serv_msg}')
         cThread=threading.Thread(target=self.recv,args=())
         cThread.demon=True
         cThread.start()
         
-        if serv_msg== '!invite/serv':  #'!invite'받으면 
-           print('if문 들어왔냐')
-           self.request(self) 
-                    
+        if serv_msg== '!invite':  #'!invite'받으면 
+            sock.send('!ok'.encode()) #서버에 다시 '!ok'보내주기         
         #cThread=threading.Thread(target=self.recv,args=())
         #cThread.demon=True
         #cThread.start()
@@ -180,60 +174,14 @@ class teacherui(QMainWindow):
             print('쓰레드 확인')
             serv_msg=sock.recv(1024).decode()    
             print(f'서버의메세지: {serv_msg}')
-            if serv_msg== '!invite/serv':  #'!invite'받으면 
-                print('if문 들어왔냐')
-                self.request() 
             self.counseling_browser.append(serv_msg)
 
     def userExit(self): #class에 있음
         self.stackedWidget.setCurrentIndex(0)
-        self.counseling_browser.clear()
-        exitMsg='!quit'
-        sock.send(exitMsg.encode())
+       # exitMsg='!quit'
+        #sock.send(exitMsg.encode())
         self.cThread.join()          
-    
-    def invitemsg(self):  #########################################팝업창부분
-        super().__init__() # 추가 QMainwindow 상속받아서 창을 띄우기 위해 추가
-        self.setWindowTitle("상담하려는 학생을 입력해주세요")
-        self.setGeometry(400, 400, 400, 100)
-        self.setStyleSheet(
-            "color: rgb(131, 56, 236); background-color: qlineargradient(spread:pad, x1:0.125, y1:0.892227, x2:0.865, y2:0.130727, stop:0.208333 rgba(128, 106, 174, 255), stop:0.645833 rgba(204, 106, 201, 255));border: 1.5px solid rgb(58, 134, 255);border-radius: 5px;")
-        self.choice_student = QLineEdit(self) # 학생 선택 choice_student로 변수명 변경
-        self.choice_student.setGeometry(60, 25, 280, 50)
-        self.choice_student.setFont(QFont('Ubuntu', 14))
-        self.choice_student.setStyleSheet("color:black;background-color:lavender;")
-        self.choice_student.returnPressed.connect(self.send_msg) # 학생 초대 하면서 열린 초대 창 닫기 위해 함수 연결
-        self.show()
-
-    def send_msg(self): # 학생 초대창 닫으면서 서버로 학생 이름 전송
-        self.close()
-        sock.send(self.choice_student.text().encode())
-
-    def request(self):   #초대 수락거절 팝업창 
-        request=ok_no()
-        request.exec_()
-    
-
-class ok_no(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui=uic.loadUi("request.ui",self)
-        self.reButton1.clicked.connect(self.send_ok)
-        self.reButton2.clicked.connect(self.send_no)
-    
-    def send_ok(self):
-        self.close()
-        sock.send("!ok".encode())
-
-    def send_no(self):
-        self.close()
-        sock.send("!no".encode())    
-
-
-
-        
-
-
+      
    
 if __name__ == '__main__':
     app = QApplication(sys.argv)
