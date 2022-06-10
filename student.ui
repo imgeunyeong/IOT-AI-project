@@ -466,7 +466,7 @@ background-color:lavender;</string>
      <widget class="QPushButton" name="quiz_complete_btn">
       <property name="geometry">
        <rect>
-        <x>90</x>
+        <x>210</x>
         <y>610</y>
         <width>111</width>
         <height>61</height>
@@ -485,6 +485,50 @@ background-color:lavender;</string>
       </property>
       <property name="text">
        <string>제출</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="timer_label">
+      <property name="geometry">
+       <rect>
+        <x>750</x>
+        <y>20</y>
+        <width>141</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:black;
+background-color:lavender;</string>
+      </property>
+      <property name="text">
+       <string>시간</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="quiz_start_btn">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>610</y>
+        <width>111</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:blue;
+background-color:lavender;</string>
+      </property>
+      <property name="text">
+       <string>시작</string>
       </property>
      </widget>
     </widget>

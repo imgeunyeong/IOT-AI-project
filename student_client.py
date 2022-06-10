@@ -2,12 +2,13 @@
 from sqlite3 import dbapi2
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import*
+from PyQt5.QtCore import*
 from PyQt5 import uic #ui연결해주는 모듈
 import sys
 import socket
 from threading import*
 import sqlite3
-
+import datetime
 
 sock=socket.create_connection(('127.0.0.1',9020))
 
@@ -124,6 +125,8 @@ class studentui(QMainWindow):
         self.button_click()
         self.icon = QIcon('talk.png')
         self.setWindowIcon(self.icon)
+        self.study_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
 
     def widget_append(self): # 학습자료 추가
         self.stackedWidget.setCurrentIndex(1)
@@ -173,30 +176,22 @@ class studentui(QMainWindow):
             sock.send(self.counseling_line.text().encode())
             self.counseling_line.clear()
 
-    def quiz_page(self): # 퀴즈 페이지로 넘어가면서 문제 할당
+    def quiz_page(self): # 문제만 할당하고 Db에 있는 문제와 답이 일치 할 때 정답처리 리스트에 넣어서 해야하나?
         self.stackedWidget.setCurrentIndex(2)
 
-    def upload_question(self): # 데이터 베이스에서 가져와야 함 (임시로 리스트 생성)
-        self.stackedWidget.setCurrentIndex(3)
-        q_stack = 0
-        con = sqlite3.connect("stu_client.db")
-        with con:
-            cur = con.cursor()
-            rows = cur.execute('select * from qna')
-            for row in rows:
-                self.qna_widget.setRowCount((q_stack + 1))
-                changetype = list(row)
-                for j in range(2):
-                    self.qna_widget.setItem(q_stack, j, QTableWidgetItem(str(changetype[j])))
-                q_stack += 1
+    def upload_question(self): # 데이터 베이스에서 가져와야 함 질문을 학생 데이터베이스에 저장하면서 서버로 보내고 서버에서는 답변을 받아와서 데이터베이스에 추가를 하면서 테이블 위젯에 띄우기
+        con = sqlite3.connect('stu_client.db')
+        cur = con.cursor()
+        cur.execute(f'insert into qna (question) value ({self.qna_line.text()}')
+        con.commit()
+        con.close()
 
-
-
-    def button_click(self): # 클릭 작용 함수 모음
+    def button_click(self): # 여러가지 반응 작용 함수 모음집
         self.study_button.clicked.connect(self.widget_append)
         self.quiz_button.clicked.connect(self.quiz_page)
-        self.question_button.clicked.connect(self.upload_question)
+        self.question_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
         self.chatroom_button.clicked.connect(self.enter_chatroom)
+        self.qna_line.returnPressed.connect(self.upload_question)
         self.back_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
