@@ -219,16 +219,16 @@ def QnA(sock): #Q&A 등록 함수
     QnAlist = []
     c.execute('select * from QnA')
     QnA = c.fetchall()
-    if QnA !=None: #등록된 Q&A가 있을때
+    if not QnA:   #등록된 Q&A가 있을때
+        send_msg(sock, '!no') #없으면 !no 보내기
+    else:
         for i in QnA:
             i = list(i)
             i[0] = str(i[0])
             i = '/'.join(i) 
-            QnAlist.append(i)  
+            QnAlist.append(i)     
         print(QnAlist)
         send_msg(sock, QnAlist) #등록된 Q&A 리스트 보내주기
-    else:
-        send_msg(sock, '!no') #없으면 !no 보내기
     while True:
         msg = recv_msg(sock)
         if msg == '!update':
