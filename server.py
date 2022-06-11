@@ -258,11 +258,13 @@ def updateQuestion(sock): #문제등록 함수
         elif userInfo[clnt_num][2] == 'tea': #선생님일때
             print('선생님')
             Question = recv_msg(sock)
+            print(Question)
             if Question == '!quit':
                 con.close()
                 return
             splitQuestion = Question.split('/')
-            c.execute('insert into question (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1])) #question 테이블에 질문 등록
+            c.execute('insert into question (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1]),) #question 테이블에 질문 등록
+            con.commit()
             QuestionNum+=1 #질문 등록후 번호+1
         
 
