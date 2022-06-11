@@ -131,15 +131,8 @@ class studentui(QMainWindow): # 학생 ui
         self.answer_list = [] # 퀴즈 답 담기용 리스트
         self.final_answer_list = [] # 학생이 적은 답 담기 리스트
         self.score = 0
-        self.qThread = recv()  # 왜셀프
-        self.qThread.sig.connect(self.print_data)
-        self.qThread.demon = True
-        self.qThread.start()
-
-    @pyqtSlot(str)  # 전달 받은 데이터의 타입이 str이다
-    def print_data(self, data):  # 전달 받은 데이터를 data에 넣는다.
-        self.counseling_browser.append(data)  # recv한 데이터 상담 화면에 추가
-
+        tea_msg = Thread(target=self.recv_msg)  # 서버로부터 채팅방 메시지 받는 스레드 구동
+        tea_msg.start()
 
     def widget_append(self): # 학습자료 추가
         self.stackedWidget.setCurrentIndex(1)
@@ -169,7 +162,6 @@ class studentui(QMainWindow): # 학생 ui
         self.choice_teacher.setFont(QFont('Ubuntu', 14)) # 폰트 지정 및 크기 지정
         self.choice_teacher.setStyleSheet("color:black;background-color:lavender;") # 스타일시트
         self.choice_teacher.returnPressed.connect(self.send_choice_msg) # 선생님 이름 적은 후 enter 누를 시 작용
-
         self.show() # mainwindow 띄우기
 
     def send_choice_msg(self): # 서버로 실시간 상담 접속 정보를 보냄
@@ -178,7 +170,16 @@ class studentui(QMainWindow): # 학생 ui
         self.counseling_browser.append("선생님을 기다리는중...")
 
 
-
+    def recv_msg(self): # 서버에서 실시간 상담 메시지를 받음
+        while True:
+            a = sock.recv(1024).decode() # 상담 채팅방 메시지 받기
+            self.counseling_browser.append(a) # 받은 메시지 브라우저에 추가
+            if a == '!invite/serv':
+                invite = QMessageBox.information(self, "채팅 초대", "초대가 도착했습니다\n수락하시겠습니까?", QMessageBox.Yes | QMessageBox.No)
+                if invite == QMessageBox.Yes:
+                    sock.send("!ok".encode())
+                else:
+                    sock.send("!no".encode())
 
     def send_msg(self): # 서버로 실시간 상담 메시지를 보냄
         if self.counseling_line.text() == '': # 빈칸이면 무시
@@ -290,46 +291,6 @@ class studentui(QMainWindow): # 학생 ui
         header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
         self.quiz_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch) # 퀴즈 위젯 퀴즈, 답변 로우 절반씩 나눈것
         self.qna_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # qna 위젯 question, answer 로우 절반씩 나눈것
-
-    def request(self):  # 초대 수락거절 팝업창
-        request = ok_no()
-        request.exec_()
-
-class recv(QThread):
-    sig = pyqtSignal(str)  # 사용자 정의 시그널 sig를 만듬 전달할 데이터의 타입이 str이다.
-
-    def __init__(self):  # 큐티 브라우저에 append 해야하니까 인자 줘야할것같은데
-        super().__init__()  # 쓰레드 쓸려고 상속받음
-        print('q쓰레드 확인')
-
-    def run(self):
-        while True:
-            print('q쓰레드 확인222')
-            serv_msg = sock.recv(1024).decode()
-            print(f'서버의메세지: {serv_msg}')
-            if serv_msg == '!invite/serv':
-                # classinst=teacherui()
-                # classinst.request()
-                classinst = studentui()
-                studentui.request(classinst)
-            else:
-                self.sig.emit(serv_msg)
-
-
-class ok_no(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = uic.loadUi("request.ui", self)
-        self.reButton1.clicked.connect(self.send_ok)
-        self.reButton2.clicked.connect(self.send_no)
-
-    def send_ok(self):
-        self.close()
-        sock.send("!ok".encode())
-
-    def send_no(self):
-        self.close()
-        sock.send("!no".encode())
 
 
 if __name__ == '__main__':
