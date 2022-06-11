@@ -9,6 +9,7 @@ import socket
 from threading import*
 import sqlite3
 import datetime
+from time import*
 
 sock=socket.create_connection(('127.0.0.1',9020))
 
@@ -173,13 +174,18 @@ class studentui(QMainWindow): # 학생 ui
     def recv_msg(self): # 서버에서 실시간 상담 메시지를 받음
         while True:
             a = sock.recv(1024).decode() # 상담 채팅방 메시지 받기
-            self.counseling_browser.append(a) # 받은 메시지 브라우저에 추가
             if a == '!invite/serv':
                 invite = QMessageBox.information(self, "채팅 초대", "초대가 도착했습니다\n수락하시겠습니까?", QMessageBox.Yes | QMessageBox.No)
                 if invite == QMessageBox.Yes:
                     sock.send("!ok".encode())
+                    self.stackedWidget.setCurrentIndex(4)
+                    sleep(1)
+                    sock.send('!chat'.encode())  # 채팅창 접속 신호 보냄
+
                 else:
                     sock.send("!no".encode())
+            else:
+                self.counseling_browser.append(a)  # 받은 메시지 브라우저에 추가
 
     def send_msg(self): # 서버로 실시간 상담 메시지를 보냄
         if self.counseling_line.text() == '': # 빈칸이면 무시
