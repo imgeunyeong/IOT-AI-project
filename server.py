@@ -6,8 +6,8 @@ import sqlite3
 import sys
 
 BUFSIZE = 1024 #버퍼사이즈
-host = '10.10.20.33' 
-port = 9020
+host = '127.0.0.1' 
+port = 9026
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
 roomNum = 1 #채팅속성
@@ -183,12 +183,13 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
       
 def chat(clnt_num): # 채팅 함수
     #수정중
+    print('채팅들어옴?')
     con, c = getcon() #커서 획득
     type = userInfo[clnt_num][2] #선생님인지 학생인지 확인
     if type == 'tea': #선생님
-        c.execute('select Name from teacherInfo where ID = ?', (userInfo[clnt_num][1])) #db에서 이름가져오기
+        c.execute('select Name from teacherInfo where ID = ?', (userInfo[clnt_num][1],)) #db에서 이름가져오기
     elif type == 'stu': #학생
-        c.execute('select Name from studentInfo where ID = ?', (userInfo[clnt_num][1]))  
+        c.execute('select Name from studentInfo where ID = ?', (userInfo[clnt_num][1],))  
     name = c.fetchone() 
     name = ''.join(name) #문자열로 바꿔주기
     print(name)
@@ -197,13 +198,13 @@ def chat(clnt_num): # 채팅 함수
         msg = recv_msg(userInfo[clnt_num][0])
         if msg == '!quit': #채팅 종료 매세지
             for i in range(0, usercnt): #유저수만큼
-                if userInfo[clnt_num][3] == userInfo[i][3]: #같은 채팅방
+                if userInfo[clnt_num][3] == userInfo[i][3] and userInfo[clnt_num][2] != userInfo[i][2]: #같은 채팅방
                     send_msg(userInfo[i][0], ('%s님이 상담을 종료했습니다' %name)) #종료매세지 보내줌
                     userInfo[clnt_num][3] = 0 #채팅 속성 복구
             break
         else:
             for i in range(0, usercnt): #유저수만큼
-                if userInfo[clnt_num][3] == userInfo[i][3]: #같은채팅방
+                if userInfo[clnt_num][3] == userInfo[i][3] and userInfo[clnt_num][2] != userInfo[i][2]: #같은채팅방
                     send_msg(userInfo[i][0], name+':'+msg) #이름+메세지
                     break          
     con.close()
