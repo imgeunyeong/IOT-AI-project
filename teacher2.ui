@@ -643,6 +643,26 @@ border-radius: 20;
        <string>돌아가기</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="chat_invite_button">
+      <property name="geometry">
+       <rect>
+        <x>780</x>
+        <y>550</y>
+        <width>111</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>초대</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
