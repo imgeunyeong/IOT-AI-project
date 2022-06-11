@@ -365,7 +365,8 @@ background-color:lavender;</string>
       </property>
       <property name="styleSheet">
        <string notr="true">color:blue;
-background-color:lavender;</string>
+background-color:lavender;
+</string>
       </property>
       <property name="text">
        <string>돌아가기</string>
