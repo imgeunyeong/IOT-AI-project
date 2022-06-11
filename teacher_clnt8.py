@@ -108,6 +108,7 @@ class regit(QDialog): #가입창
 
 
 class recv(QThread):
+         #사용자 정의 시그널 만드는 형식  (str은 emit으로 전달할 데이터의 타입)
     sig = pyqtSignal(str) #사용자 정의 시그널 sig를 만듬 전달할 데이터의 타입이 str이다.
 
     def __init__(self): #큐티 브라우저에 append 해야하니까 인자 줘야할것같은데
@@ -145,7 +146,7 @@ class teacherui(QMainWindow):
         print('실행과정확인')
 
         self.qThread = recv()   #왜셀프
-        self.qThread.sig.connect(self.print_data)
+        self.qThread.sig.connect(self.print_data) #sig 라는 이벤트가 발생하면
         self.qThread.demon=True
         self.qThread.start()
 
