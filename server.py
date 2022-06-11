@@ -261,7 +261,7 @@ def updateQuestion(sock): #문제등록 함수
                 con.close
                 return
             splitQuestion = Question.split('/')
-            c.execute('insert into QnA (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1])) #Q&A 테이블에 질문 등록
+            c.execute('insert into question (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1])) #question 테이블에 질문 등록
             QuestionNum+=1 #질문 등록후 번호+1
         
 
