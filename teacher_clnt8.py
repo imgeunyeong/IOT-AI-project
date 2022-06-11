@@ -108,6 +108,8 @@ class regit(QDialog): #가입창
 
 
 class recv(QThread):
+    sig = pyqtSignal(str) #사용자 정의 시그널 sig를 만듬 전달할 데이터의 타입이 str이다.
+
     def __init__(self): #큐티 브라우저에 append 해야하니까 인자 줘야할것같은데
         super().__init__()  #쓰레드 쓸려고 상속받음
         print('q쓰레드 확인')
@@ -121,6 +123,9 @@ class recv(QThread):
                 #classinst.request()
                 classinst=teacherui()
                 teacherui.request(classinst)
+            else:
+                self.sig.emit(serv_msg) #serv_msg를 다른 클래스로 전송 emit으로 시그널을 발생시킴
+                # 전달하고 싶은 데이터가 있으면 데이터를 넣어주고 데이터에 맞는 타입을 정의한다.
 
 
 
@@ -140,6 +145,7 @@ class teacherui(QMainWindow):
         print('실행과정확인')
 
         self.qThread = recv()   #왜셀프
+        self.qThread.sig.connect(self.print_data)
         self.qThread.demon=True
         self.qThread.start()
 
@@ -149,7 +155,12 @@ class teacherui(QMainWindow):
         self.question_button.clicked.connect(self.QNA)
         self.chatroom_button.clicked.connect(self.chatroom)
         self.back_button_4.clicked.connect(self.userExit)#4back추가
-        self.counseling_browser.append(serv_msg)  #recv한 데이터 상담 화면에 추가
+        
+
+    @pyqtSlot(str) # 전달 받은 데이터의 타입이 str이다
+    def print_data(self, data): # 전달 받은 데이터를 data에 넣는다.
+        self.counseling_browser.append(data)  #recv한 데이터 상담 화면에 추가
+        
 
     '''
     def recv():
