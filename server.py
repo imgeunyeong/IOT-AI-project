@@ -248,16 +248,20 @@ def updateQuestion(sock): #문제등록 함수
     global QuestionNum
     clnt_num = findNum(sock)
     con, c = getcon()
-    if userInfo[clnt_num][2] == 'stu': # 학생일때
-        print('학생')
-        send_msg(sock, '!no') #메세지 보내기
-        return
-    elif userInfo[clnt_num][2] == 'tea': #선생님일때
-        print('선생님')
-        Question = recv_msg(sock)
-        splitQuestion = Question.split('/')
-        c.execute('insert into QnA (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1])) #Q&A 테이블에 질문 등록
-        QuestionNum+=1 #질문 등록후 번호+1
+    while True:
+        if userInfo[clnt_num][2] == 'stu': # 학생일때
+            print('학생')
+            send_msg(sock, '!no') #메세지 보내기
+            return
+        elif userInfo[clnt_num][2] == 'tea': #선생님일때
+            print('선생님')
+            Question = recv_msg(sock)
+            if Question == '!quit':
+                con.close
+                return
+            splitQuestion = Question.split('/')
+            c.execute('insert into QnA (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1])) #Q&A 테이블에 질문 등록
+            QuestionNum+=1 #질문 등록후 번호+1
         
 
 def handleclnt(sock): # 클라정보 수신 스레드
@@ -278,7 +282,7 @@ def handleclnt(sock): # 클라정보 수신 스레드
             QnA(sock)
         elif data == '!question': #!question받으면 문제출제 함수 실행
             updateQuestion(sock)
-        elif data == '!quit': #!quit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
+        elif data == '!exit': #!exit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
             delete_userInfo(sock)
         elif not data:
             break
