@@ -23,27 +23,26 @@ class login (QDialog):
         self.login_button.clicked.connect(self.input_login) #pushButton 클릭시 연결하는 함수
         self.join_in.clicked.connect(self.join) #회원가입 버튼 클릭할때 실행되는 함수
 
-
     def input_login(self): #실행확인용함수
-
+        global id
         sock.send('!login'.encode())
-        id=self.idbar.text() #텍스트 가져옴
-        pw=self.pwbar.text()
-        info=id+'/'+pw
+        id = self.idbar.text() #텍스트 가져옴
+        pw = self.pwbar.text()
+        info = id + '/' + pw
 
         if self.student.isChecked() : 
-            info=info+'/stu'
-        elif  self.teacher.isChecked() : 
-            info=info+'/tea'
+            info = info + '/stu'
+        elif self.teacher.isChecked() :
+            info = info + '/tea'
 
-        sock.send(info.encode()) #id,pw,type
-        #데이터 베이스에 있는지 서버에서 확인하고 있으면 !ok 없으면 !no
-        ch=sock.recv(1024).decode() #여기서 디코드 
+        sock.sendall(info.encode()) #id,pw,type
+        # 데이터 베이스에 있는지 서버에서 확인하고 있으면 !ok 없으면 !no
+        ch = sock.recv(1024).decode() #여기서 디코드
         print(ch) 
-        chlist=ch.split('/')
-        if chlist[0] =='!ok': #데이터베이스에 있으면 (데이터베이스는 !ok or !no/'stu' or 'tea' 형태로 보냄)
+        chlist = ch.split('/')
+        if chlist[0] == '!ok': #데이터베이스에 있으면 (데이터베이스는 !ok or !no/'stu' or 'tea' 형태로 보냄)
             print(f' 1 : {chlist}')
-            if chlist[1]=='stu':
+            if chlist[1] == 'stu':
                 self.close()
                 student_show = studentui()
                 student_show.show()
@@ -53,21 +52,20 @@ class login (QDialog):
                 teacherui_show = teacherui() # 클래스담고
                 teacherui_show.exec_() #클래스실행(가입창)
             
-            else: QMessageBox.warning(self, 'Warning', '아이디,비밀번호를 확인해주세요')
-        
-        
-    def join(self):  #가입창 함수
-        sock.send('!signup'.encode()) #서버에 사인업 명령어 보냄 
-        self.close() #로그인ui를닫음(self가 현재 login class임)
-        regit_show = regit() # 클래스담고
-        regit_show.exec_() #클래스실행(가입창)
-        
+            else:
+                QMessageBox.warning(self, 'Warning', '아이디,비밀번호를 확인해주세요')
+
+    def join(self):
+        sock.send('!signup'.encode())
+        self.close()
+        regit_show = regit()
+        regit_show.exec_()
         
 
 class regit(QDialog): #가입창 
     def __init__(self):
         super().__init__()
-        self.ui=uic.loadUi("regit.ui",self)       
+        self.ui = uic.loadUi("regit.ui",self)
 
         #이벤트
         self.id_chk.clicked.connect(self.check_id)
@@ -86,19 +84,19 @@ class regit(QDialog): #가입창
             QMessageBox.warning(self, 'Warning', '중복된 아이디입니다')
 
     def check_pw(self): # 비번 확인
-        id=self.idbar.text()
-        pw1=self.pwbar1.text()
-        pw2=self.pwbar2.text()
+        id = self.idbar.text()
+        pw1 = self.pwbar1.text()
+        pw2 = self.pwbar2.text()
 
-        if pw1==pw2:
+        if pw1 == pw2:
             QMessageBox.information(self, 'Message', '축하합니다! 가입이 완료 되었습니다')
-            name=self.namebar.text()
-            infoall= id + '/' + pw1 + '/' + name + '/'
-            
-            
-            if self.student.isChecked() : infoall=infoall+'stu' # 학생인지 선생님인지 판별
-            elif self.teacher.isChecked() :
-                infoall=infoall+'tea'
+            name = self.namebar.text()
+            infoall = id + '/' + pw1 + '/' + name + '/'
+
+            if self.student.isChecked():
+                infoall = infoall + 'stu' # 학생인지 선생님인지 판별
+            elif self.teacher.isChecked():
+                infoall = infoall + 'tea'
             sock.sendall(infoall.encode())
             self.enter()
 
@@ -109,7 +107,7 @@ class regit(QDialog): #가입창
         self.close() #로그인ui를닫음(self가 현재 login class임)
         login_show = login() # 클래스담고
         login_show.exec_() #클래스실행(가입창)
-        sock.send('!login'.encode())
+
 
 
 class teacherui(QDialog): # 선생님 ui의 흔적
@@ -132,6 +130,9 @@ class studentui(QMainWindow): # 학생 ui
         self.answer_list = [] # 퀴즈 답 담기용 리스트
         self.final_answer_list = [] # 학생이 적은 답 담기 리스트
         self.score = 0
+        self.timer = QTimer(self)
+        self.time_mm = 19
+        self.time_ss = 60
         tea_msg = Thread(target=self.recv_msg)  # 서버로부터 채팅방 메시지 받는 스레드 구동
         tea_msg.start()
 
@@ -170,10 +171,10 @@ class studentui(QMainWindow): # 학생 ui
         sock.send(f'{self.choice_teacher.text()}'.encode()) # 적었던 상담하고 싶은 선생님 이름 서버로 전송
         self.counseling_browser.append("선생님을 기다리는중...")
 
-
     def recv_msg(self): # 서버에서 실시간 상담 메시지를 받음
         while True:
             a = sock.recv(1024).decode() # 상담 채팅방 메시지 받기
+            print(a)
             if a == '!invite/serv':
                 invite = QMessageBox.information(self, "채팅 초대", "초대가 도착했습니다\n수락하시겠습니까?", QMessageBox.Yes | QMessageBox.No)
                 if invite == QMessageBox.Yes:
@@ -201,6 +202,8 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
 
     def quiz_start(self): # 시작 버튼 누르면 퀴즈 할당
+        self.timer.start(1000)
+        self.timer.timeout.connect(self.time_time)
         self.quiz_start_btn.setEnabled(False) # 시작 버튼 비활성화 # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
         self.quiz_complete_btn.setEnabled(True) # 제출 버튼 활성화
         i = 0
@@ -213,7 +216,6 @@ class studentui(QMainWindow): # 학생 ui
                 changetype = list(row)
                 self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
                 self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
-                print(self.answer_list)
                 for j in range(1):
                     self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
                 i += 1
@@ -239,22 +241,50 @@ class studentui(QMainWindow): # 학생 ui
         self.stackedWidget.setCurrentIndex(3)
         sock.send('!Q&A'.encode())
 
+    def time_time(self): # 문제 풀이 타이머
+        if self.time_ss == -1:
+            self.time_ss = 59
+            self.time_mm -= 1
+            self.timer_label.setText(f'{self.time_mm} : {self.time_ss}')
+        elif len(str(self.time_ss)) == 1:
+            self.timer_label.setText(f'{self.time_mm} : 0{self.time_ss}')
+            self.time_ss -= 1
+            print(f'초 : {self.time_ss}')
+            print(f'분 : {self.time_mm}')
+        else:
+            self.time_ss -= 1
+            self.timer_label.setText(f'{self.time_mm} : {self.time_ss}')
+            print(f'초 : {self.time_ss}')
+            print(f'분 : {self.time_mm}')
+        if self.time_mm == 0 and self.time_ss == -1:
+            QMessageBox.information(self, "시간종료","다음 기회에!")
+            self.timer.stop()
+
     def upload_question(self): # 질문 학생이 입력시 학생 DB에 저장하면서 서버로 질문을 보내고 테이블 위젯 최신화 (서버에서 답 받아오면 DB에 추가하고 다시 최신화 해야함)
-        i = 0  # 학습하기와 동일 range값만 바꿔줌
-        con = sqlite3.connect('stu_client.db')
-        with con:
-            cur = con.cursor()
-            cur.execute(f'insert into qna values ("{self.qna_line.text()}", " ")') # 학생 데이터베이스에 질문 내용 저장
-            sock.send(f'!update{self.qna_line.text()}'.encode()) # 서버로 질문 내용 전송
-            rows = cur.execute('select * from qna')
-            for row in rows:
-                self.qna_widget.setRowCount((i + 1))
-                changetype = list(row)
-                for j in range(2):
-                    self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
-                i += 1
-        sock.send(self.qna_line.text().encode()) # 질문 내용 서버로 전송
-        self.qna_line.clear()
+        if self.qna_line.text() == '':
+            pass
+        else:
+            check = QMessageBox.information(self, "질문 등록", f'<{self.qna_line.text()}>\n등록하시는 질문이 맞나요?', QMessageBox.Yes | QMessageBox.No)
+            if check == QMessageBox.Yes:
+                i = 0  # 학습하기와 동일 range값만 바꿔줌
+                con = sqlite3.connect('stu_client.db')
+                with con:
+                    cur = con.cursor()
+                    cur.execute(f'insert into qna values ("{self.qna_line.text()}", " ")')  # 학생 데이터베이스에 질문 내용 저장
+                    sock.send(f'!update{self.qna_line.text()}'.encode())  # 서버로 질문 내용 전송
+                    rows = cur.execute('select * from qna')
+                    for row in rows:
+                        self.qna_widget.setRowCount((i + 1))
+                        changetype = list(row)
+                        for j in range(2):
+                            self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
+                        i += 1
+                sock.send(self.qna_line.text().encode()) # 질문 내용 서버로 전송
+                self.qna_line.clear()
+                QMessageBox.information(self, "등록완료", "질문이 등록되었습니다", QMessageBox.Yes)
+            else:
+                QMessageBox.information(self, "미 등록","질문을 다시 입력해주세요", QMessageBox.Yes)
+                self.qna_line.clear()
 
     def reload(self): # qna 창 새로고침 함수 (서버에서 받아온 값 추가 되었을 때 새로고침)
         i = 0 # 값 초기화 안해주면 여름철 모기처럼 무한 증식
@@ -279,10 +309,10 @@ class studentui(QMainWindow): # 학생 ui
         self.chatroom_button.clicked.connect(self.enter_chatroom)
         self.qna_line.returnPressed.connect(self.upload_question)
         self.quiz_complete_btn.clicked.connect(self.complete)
-        self.back_button.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0)) # 흔들리지 않는 편안함 lambda
-        self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
-        self.back_button_3.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
-        self.back_button_4.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
+        self.back_button.clicked.connect(self.userExit)
+        self.back_button_2.clicked.connect(self.userExit)
+        self.back_button_3.clicked.connect(self.userExit)
+        self.back_button_4.clicked.connect(self.userExit)
         self.reload_btn.clicked.connect(self.reload)
         self.counseling_line.returnPressed.connect(self.send_msg)
         self.quiz_complete_btn.setEnabled(False) # 퀴즈 시작 버튼 누르기 전까지 제출버튼 비활성화
@@ -298,6 +328,11 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch) # 퀴즈 위젯 퀴즈, 답변 로우 절반씩 나눈것
         self.qna_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # qna 위젯 question, answer 로우 절반씩 나눈것
 
+    def userExit(self): # 선택 메뉴로 이동
+        self.stackedWidget.setCurrentIndex(0)
+        self.counseling_browser.clear()
+        exitMsg = '!quit'
+        sock.send(exitMsg.encode())
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
