@@ -141,8 +141,9 @@ class studentui(QMainWindow): # 학생 ui
             cur = con.cursor()
             rows = cur.execute('select * from dinosaur')
             for row in rows:
-                self.study_widget.setRowCount((i + 1)) # 0번째에 명, 크기, 체중 등이 들어가 있으니 건너뛰고 1번째부터 데이터 추가
+                self.study_widget.setRowCount((i + 1)) # 행의 길이 지정 (행이랑 열의 개념을 잘못 알고 있었던 나)
                 changetype = list(row) # 값을 집어넣기 위해 리스트화
+                print(changetype)
                 for j in range(7): # 넣을 값이 7가지 range(7)로 for문 사용
                     self.study_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # i 는 row값 j는 column값
                 i += 1 # 1번째 row가 채워지면 다음 row를 채우기 위해 1 씩 증가
@@ -213,11 +214,11 @@ class studentui(QMainWindow): # 학생 ui
                 cur = con.cursor()
                 rows = cur.execute('select * from quiz')
                 for row in rows:
-                    self.quiz_widget.setRowCount((i + 1))
-                    changetype = list(row)
+                    self.quiz_widget.setRowCount((i + 1)) # 0번째 행은 분류명이 적혀있으니까 1을 증가시킴
+                    changetype = list(row) # 데이터베이스에서 가져올때 튜플의 형태이기 때문에 리스트로 바꿔줌
                     self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
                     self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
-                    for j in range(1):
+                    for j in range(1): #
                         self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
                     i += 1
 
@@ -228,7 +229,7 @@ class studentui(QMainWindow): # 학생 ui
         self.time_mm = 19 # 변수 값 초기화
         self.time_ss = 60
         self.timer_label.setText("20 : 00") # 라벨 텍스트 재설정
-        for i in range(self.quiz_widget.rowCount()): # 퀴즈 위젯의 열 카운트
+        for i in range(self.quiz_widget.rowCount()): # 퀴즈 위젯의 행 카운트
             answer = self.quiz_widget.item(i, 1) # 퀴즈 위젯에 적은 답을 가져옴
             try:
                 final_ans = answer.text() # 텍스트로 변경 후 지정
@@ -309,6 +310,7 @@ class studentui(QMainWindow): # 학생 ui
             for row in rows:
                 self.qna_widget.setRowCount((i + 1))
                 changetype = list(row)
+                print(changetype)
                 for j in range(2):
                     self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
                 i += 1
@@ -341,8 +343,8 @@ class studentui(QMainWindow): # 학생 ui
         header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeToContents)
-        self.quiz_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch) # 퀴즈 위젯 퀴즈, 답변 로우 절반씩 나눈것
-        self.qna_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # qna 위젯 question, answer 로우 절반씩 나눈것
+        self.quiz_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch) # 퀴즈 위젯 퀴즈, 답변 column 절반씩 나눈것
+        self.qna_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # qna 위젯 question, answer column 절반씩 나눈것
 
     def userExit(self): # 선택 메뉴로 이동
         self.stackedWidget.setCurrentIndex(0)
