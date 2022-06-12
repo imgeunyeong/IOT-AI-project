@@ -129,7 +129,7 @@ def login(sock): #로그인 처리 함수
     #lock.release()   
 
 def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변경
-    #수정중
+    #필요시 수정
     global roomNum
     clnt_num = findNum(sock) #클라이언트 번호 가져오기
     
@@ -183,7 +183,7 @@ def chatmode(sock): #상담 요청 받아서 해당 클라이언트 속성 변�
                 return                                  
       
 def chat(clnt_num): # 채팅 함수
-    #수정중
+    #필요시 수정
     print('채팅들어옴?')
     con, c = getcon() #커서 획득
     type = userInfo[clnt_num][2] #선생님인지 학생인지 확인
@@ -288,9 +288,8 @@ def updateQuestion(sock): #문제등록 함수
             con.commit()
             QuestionNum+=1 #질문 등록후 번호+1
 
-def updateAnswer(sock):
-    
-    pass       
+def updateAnswer(sock):   
+    pass 
 
 def handleclnt(sock): # 클라정보 수신 스레드
     # if sock in userInfo:
