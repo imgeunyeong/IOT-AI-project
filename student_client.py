@@ -180,7 +180,6 @@ class studentui(QMainWindow): # 학생 ui
                     self.stackedWidget.setCurrentIndex(4)
                     sleep(1)
                     sock.send('!chat'.encode())  # 채팅창 접속 신호 보냄
-
                 else:
                     sock.send("!no".encode())
             else:
@@ -252,6 +251,8 @@ class studentui(QMainWindow): # 학생 ui
             QMessageBox.information(self, "합격!", f'{self.score}점\n합격했습니다!')
         elif 79 < self.score < 101:
             QMessageBox.information(self, "선생님은 만족했다", f'{self.score}점')
+        for i in range(self.quiz_widget.rowCount()):
+            self.quiz_widget.removeRow(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
         self.stackedWidget.setCurrentIndex(3)
@@ -351,6 +352,10 @@ class studentui(QMainWindow): # 학생 ui
         self.counseling_browser.clear()
         exitMsg = '!quit'
         sock.send(exitMsg.encode())
+        for i in range(self.quiz_widget.rowCount()):
+            self.quiz_widget.removeRow(0)
+        for i in range(self.qna_widget.rowCount()):
+            self.qna_widget.removeRow(0)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
