@@ -6,7 +6,7 @@ import sqlite3
 import sys
 
 BUFSIZE = 1024 #버퍼사이즈
-host = '10.10.20.33' 
+host = '127.0.0.1' 
 port = 9026
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
@@ -73,13 +73,14 @@ def signup(sock): #회원가입 처리 함수
         con.commit()
         con.close()
         print('succes 회원가입')
-        
+        return        
     elif userdata[3] == 'stu': #학생
         c.execute('insert into studentInfo (ID, PW, Name, type) values (?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3])) #학생 테이블에 데이터 저장
         con.commit()
         con.close()
         print('succes 회원가입')
-
+        return
+    
 def login(sock): #로그인 처리 함수
     global usercnt
     con, c = getcon() #커서획득
@@ -219,9 +220,11 @@ def QnA(sock): #Q&A 등록 함수
     QnAlist = []
     c.execute('select * from QnA')
     QnA = c.fetchall()
-    if not QnA:   #등록된 Q&A가 있을때
+    if not QnA: 
         send_msg(sock, '!no') #없으면 !no 보내기
-    else:
+        con.close()
+        return
+    else:  #등록된 Q&A가 있을때
         for i in QnA:
             i = list(i)
             i[0] = str(i[0])
@@ -252,6 +255,22 @@ def updateQuestion(sock): #문제등록 함수
     global QuestionNum
     clnt_num = findNum(sock)
     con, c = getcon()
+    Questionlist = []
+    c.execute('select * from question')
+    Qestion = c.fetchall()
+    if not Qestion:   
+        send_msg(sock, '!no') #없으면 !no 보내기
+        con.close()
+        return
+    else: #등록된 문제가 있을때
+        for i in Question:
+            i = list(i)
+            i[0] = str(i[0])
+            i = '/'.join(i) 
+            Questionlist.append(i)     
+        print(Questionlist)
+        for j in range(0, len(Questionlist)):
+            send_msg(sock, Questionlist[j]) #등록된 Q&A 리스트 보내주기
     while True:
         if userInfo[clnt_num][2] == 'stu': # 학생일때
             print('학생')
@@ -265,10 +284,13 @@ def updateQuestion(sock): #문제등록 함수
                 con.close()
                 return
             splitQuestion = Question.split('/')
-            c.execute('insert into question (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1]),) #question 테이블에 질문 등록
+            c.execute('insert into question (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1]),) #question 테이블에 퀴즈 등록
             con.commit()
             QuestionNum+=1 #질문 등록후 번호+1
-        
+
+def updateAnswer(sock):
+    
+    pass       
 
 def handleclnt(sock): # 클라정보 수신 스레드
     # if sock in userInfo:
@@ -288,6 +310,8 @@ def handleclnt(sock): # 클라정보 수신 스레드
             QnA(sock)
         elif data == '!question': #!question받으면 문제출제 함수 실행
             updateQuestion(sock)
+        elif data == '!answer':
+            updateAnswer(sock)
         elif data == '!exit': #!exit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
             delete_userInfo(sock)
         elif not data:
