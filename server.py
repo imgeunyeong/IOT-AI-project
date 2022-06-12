@@ -236,11 +236,13 @@ def QnA(sock): #Q&A 등록 함수
             if userInfo[clnt_num][2] == 'stu': # 학생일때
                 msg = recv_msg(sock) #등록할 질문 받기
                 c.execute('insert into QnA (Num, Question, Answer, studentID, teacherID) values (?, ?, ?, ?, ?)', (QnAnum, msg, None, userInfo[clnt_num][1], None)) #Q&A 테이블에 질문 등록
+                con.commit()
                 QnAnum+=1 #질문 등록후 번호+1
             elif userInfo[clnt_num][2] == 'tea': #선생님일때
                 msg = recv_msg(sock) #등록할 답변과 질문 번호 받기
                 splitmsg = msg.split('/')
                 c.execute('update QnA set Answer = ? where Num = ?', (splitmsg[1], splitmsg[0],)) #답변 등록
+                con.commit()
         elif msg == '!quit':
             con.close()
             return
