@@ -6,7 +6,7 @@ import sqlite3
 import sys
 
 BUFSIZE = 1024 #버퍼사이즈
-host = '127.0.0.1' 
+host = '10.10.20.33' 
 port = 9026
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
@@ -227,7 +227,6 @@ def QnA(sock): #Q&A 등록 함수
     else:  #등록된 Q&A가 있을때
         for i in QnA:
             i = list(i)
-            i[0] = str(i[0])
             i = '/'.join(i) 
             QnAlist.append(i)     
         print(QnAlist)
@@ -257,15 +256,14 @@ def updateQuestion(sock): #문제등록 함수
     con, c = getcon()
     Questionlist = []
     c.execute('select * from question')
-    Qestion = c.fetchall()
-    if not Qestion:   
+    Question = c.fetchall()
+    if not Question:   
         send_msg(sock, '!no') #없으면 !no 보내기
         con.close()
         return
     else: #등록된 문제가 있을때
         for i in Question:
             i = list(i)
-            i[0] = str(i[0])
             i = '/'.join(i) 
             Questionlist.append(i)     
         print(Questionlist)
