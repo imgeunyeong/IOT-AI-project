@@ -756,7 +756,7 @@ background-color:lavender;</string>
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="qna_pushbutton">
       <property name="geometry">
        <rect>
         <x>630</x>
@@ -965,7 +965,7 @@ background-color:lavender;}
 QLineEdit:focus{border : 2px solid orange}</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="c_button">
       <property name="geometry">
        <rect>
         <x>630</x>

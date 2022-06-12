@@ -1,5 +1,4 @@
 #class login(QDialog)#큐다이얼로그의 기능을 사용하기 위해서 상속받음
-from sqlite3 import dbapi2
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import*
 from PyQt5.QtCore import*
@@ -8,7 +7,6 @@ import sys
 import socket
 from threading import*
 import sqlite3
-import datetime
 from time import*
 
 sock=socket.create_connection(('127.0.0.1',9020))
@@ -109,7 +107,6 @@ class regit(QDialog): #가입창
         login_show.exec_() #클래스실행(가입창)
 
 
-
 class teacherui(QDialog): # 선생님 ui의 흔적
     def __init__(self):
         super().__init__()
@@ -129,10 +126,10 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_list = [] # 퀴즈 문제 담기용 리스트
         self.answer_list = [] # 퀴즈 답 담기용 리스트
         self.final_answer_list = [] # 학생이 적은 답 담기 리스트
-        self.score = 0
-        self.timer = QTimer(self)
-        self.time_mm = 19
-        self.time_ss = 60
+        self.score = 0 # 학생이 푼 문제 점수 할당용
+        self.timer = QTimer(self) # 문제풀이 제한시간용 타이머
+        self.time_mm = 19 # 제한시간 분 설정
+        self.time_ss = 60 # 제한시간 초 설정
         tea_msg = Thread(target=self.recv_msg)  # 서버로부터 채팅방 메시지 받는 스레드 구동
         tea_msg.start()
 
@@ -202,27 +199,35 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
 
     def quiz_start(self): # 시작 버튼 누르면 퀴즈 할당
-        self.timer.start(1000)
-        self.timer.timeout.connect(self.time_time)
-        self.quiz_start_btn.setEnabled(False) # 시작 버튼 비활성화 # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
-        self.quiz_complete_btn.setEnabled(True) # 제출 버튼 활성화
-        i = 0
-        con = sqlite3.connect('stu_client.db')
-        with con:
-            cur = con.cursor()
-            rows = cur.execute('select * from quiz')
-            for row in rows:
-                self.quiz_widget.setRowCount((i + 1))
-                changetype = list(row)
-                self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
-                self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
-                for j in range(1):
-                    self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
-                i += 1
+        start = QMessageBox.information(self, "문제 풀이", "제한시간은 20분입니다\n시작합니다!", QMessageBox.Yes)
+        if start == QMessageBox.Yes:
+            self.timer.start(1000) # 1초마다 타이머 작동
+            self.timer.timeout.connect(self.time_time) # 1초마다 타이머 작동 함수 연결
+            self.quiz_start_btn.setEnabled(False) # 시작 버튼 비활성화 # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
+            self.quiz_complete_btn.setEnabled(True) # 제출 버튼 활성화
+            self.score = 0 # 점수 초기화
+            self.lcdNumber.display(self.score) # 점수 표시 디스플레이
+            i = 0
+            con = sqlite3.connect('stu_client.db')
+            with con:
+                cur = con.cursor()
+                rows = cur.execute('select * from quiz')
+                for row in rows:
+                    self.quiz_widget.setRowCount((i + 1))
+                    changetype = list(row)
+                    self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
+                    self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
+                    for j in range(1):
+                        self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
+                    i += 1
 
     def complete(self): # 문제 풀이 후 제출 완료
-        self.quiz_start_btn.setEnabled(True)  # 시작 버튼 활성화    # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
+        self.quiz_start_btn.setEnabled(True)  # 시작 버튼 활성화
         self.quiz_complete_btn.setEnabled(False)  # 제출 버튼 비활성화
+        self.timer.stop() # 문제 풀이 완료 타이머 스탑
+        self.time_mm = 19 # 변수 값 초기화
+        self.time_ss = 60
+        self.timer_label.setText("20 : 00") # 라벨 텍스트 재설정
         for i in range(self.quiz_widget.rowCount()): # 퀴즈 위젯의 열 카운트
             answer = self.quiz_widget.item(i, 1) # 퀴즈 위젯에 적은 답을 가져옴
             try:
@@ -236,29 +241,38 @@ class studentui(QMainWindow): # 학생 ui
                 self.lcdNumber.display(self.score) # 점수 표시
             else:
                 print(f'{i + 1}번 오답') # 오답이야~
+        if -1 < self.score < 20: # 각 점수별로 뜨는 메시지 박스 (그냥 만들긴 했는데 필요있는지는 모르겠구요)
+            QMessageBox.information(self, "놀았니?", f'{self.score}점\n공부 안했나요?')
+        elif 19 < self.score < 40:
+            QMessageBox.information(self, "공부해라", f'{self.score}점\n아직 멀었네요')
+        elif 39 < self.score < 60:
+            QMessageBox.information(self, "아쉬워요", f'{self.score}점\n합격하지 못했어요')
+        elif 59 < self.score < 80:
+            QMessageBox.information(self, "합격!", f'{self.score}점\n합격했습니다!')
+        elif 79 < self.score < 101:
+            QMessageBox.information(self, "선생님은 만족했다", f'{self.score}점')
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
         self.stackedWidget.setCurrentIndex(3)
         sock.send('!Q&A'.encode())
 
     def time_time(self): # 문제 풀이 타이머
-        if self.time_ss == -1:
+        if self.time_ss == -1: # 초가 -1로 바뀔때 값 재설정
             self.time_ss = 59
             self.time_mm -= 1
             self.timer_label.setText(f'{self.time_mm} : {self.time_ss}')
-        elif len(str(self.time_ss)) == 1:
+        elif len(str(self.time_ss)) == 1: # 초가 10 밑으로 내려가면서 1자리 수로 바뀔때 앞에 0을 붙여서 출력
             self.timer_label.setText(f'{self.time_mm} : 0{self.time_ss}')
             self.time_ss -= 1
-            print(f'초 : {self.time_ss}')
-            print(f'분 : {self.time_mm}')
         else:
             self.time_ss -= 1
             self.timer_label.setText(f'{self.time_mm} : {self.time_ss}')
-            print(f'초 : {self.time_ss}')
-            print(f'분 : {self.time_mm}')
-        if self.time_mm == 0 and self.time_ss == -1:
-            QMessageBox.information(self, "시간종료","다음 기회에!")
+        if self.time_mm == 0 and self.time_ss == -1: # 시간이 다 되었을때 타이머 멈추고 값 초기화
+            QMessageBox.information(self, "시간종료","다음에 다시 풀어보세요")
             self.timer.stop()
+            self.time_mm = 19
+            self.time_ss = 60
+            self.timer_label.setText("20 : 00")
 
     def upload_question(self): # 질문 학생이 입력시 학생 DB에 저장하면서 서버로 질문을 보내고 테이블 위젯 최신화 (서버에서 답 받아오면 DB에 추가하고 다시 최신화 해야함)
         if self.qna_line.text() == '':
@@ -308,6 +322,7 @@ class studentui(QMainWindow): # 학생 ui
         self.question_button.clicked.connect(self.qna_page)
         self.chatroom_button.clicked.connect(self.enter_chatroom)
         self.qna_line.returnPressed.connect(self.upload_question)
+        self.qna_pushbutton.clicked.connect(self.upload_question)
         self.quiz_complete_btn.clicked.connect(self.complete)
         self.back_button.clicked.connect(self.userExit)
         self.back_button_2.clicked.connect(self.userExit)
@@ -315,6 +330,7 @@ class studentui(QMainWindow): # 학생 ui
         self.back_button_4.clicked.connect(self.userExit)
         self.reload_btn.clicked.connect(self.reload)
         self.counseling_line.returnPressed.connect(self.send_msg)
+        self.c_button.clicked.connect(self.send_msg)
         self.quiz_complete_btn.setEnabled(False) # 퀴즈 시작 버튼 누르기 전까지 제출버튼 비활성화
 
         header = self.study_widget.horizontalHeader()  # 수평 헤더 반환 # 학습하기 자료 각 칼럼 가장 긴 자료 기준으로 늘림
