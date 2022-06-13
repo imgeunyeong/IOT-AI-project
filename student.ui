@@ -526,8 +526,8 @@ background-color:lavender;</string>
      <widget class="QPushButton" name="quiz_complete_btn">
       <property name="geometry">
        <rect>
-        <x>210</x>
-        <y>610</y>
+        <x>650</x>
+        <y>620</y>
         <width>111</width>
         <height>61</height>
        </rect>
@@ -582,8 +582,8 @@ background-color:lavender;</string>
      <widget class="QPushButton" name="quiz_start_btn">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>610</y>
+        <x>530</x>
+        <y>620</y>
         <width>111</width>
         <height>61</height>
        </rect>
@@ -646,6 +646,64 @@ color:lavender;</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="quiz_save_btn">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>610</y>
+        <width>81</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton{color:blue;
+background-color:lavender;border-radius: 20px;}
+
+QPushButton:hover 
+{
+background-color : skyblue;border-radius: 40px;
+}</string>
+      </property>
+      <property name="text">
+       <string>저장</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="quiz_load_btn">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>610</y>
+        <width>81</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton{color:blue;
+background-color:lavender;border-radius: 20px;}
+
+QPushButton:hover 
+{
+background-color : skyblue;border-radius: 40px;
+}</string>
+      </property>
+      <property name="text">
+       <string>불러오기</string>
       </property>
      </widget>
     </widget>

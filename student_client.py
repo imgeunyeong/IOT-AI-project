@@ -202,7 +202,7 @@ class studentui(QMainWindow): # 학생 ui
 
     def quiz_page(self): # 문제만 할당하고 Db에 있는 문제와 답이 일치 할 때 정답처리 리스트에 넣어서 해야하나?
         self.stackedWidget.setCurrentIndex(2)
-        sock.send('!question'.encode()) # 서버로 신호 전송
+        sock.send('!answer'.encode()) # 서버로 신호 전송
         self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
 
     def quiz_start(self): # 시작 버튼 누르면 퀴즈 할당
@@ -324,7 +324,11 @@ class studentui(QMainWindow): # 학생 ui
                 self.qna_line.clear()
 
     def reload(self): # qna 창 새로고침 함수 (서버에서 받아온 값 추가 되었을 때 새로고침)
+        exitMsg = '!quit'
+        sock.send(exitMsg.encode())
+        sleep(0.5)
         sock.send('!Q&A'.encode())
+        sleep(5)
         i = 0 # 값 초기화 안해주면 여름철 모기처럼 무한 증식
         con = sqlite3.connect('stu_client.db')
         with con:
@@ -333,10 +337,12 @@ class studentui(QMainWindow): # 학생 ui
             for row in rows:
                 self.qna_widget.setRowCount((i + 1))
                 changetype = list(row)
-                print(changetype)
                 for j in range(2):
                     self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
                 i += 1
+        with con:
+            cur.execute('delete from qna')
+
 
     def test(self): # 테스트용 함수
         print("test1")
