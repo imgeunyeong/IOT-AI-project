@@ -87,7 +87,6 @@ def login(sock): #로그인 처리 함수
     #lock.acquire()
     while True:
         data = recv_msg(sock) #/구분자로 ID, PW 받기
-        #clnt_num = findNum(sock)
         print('data: '+data)
         userdata = data.split('/') # /기준으로 문자열 나누기
         print('data[2]: '+userdata[2])
@@ -113,8 +112,6 @@ def login(sock): #로그인 처리 함수
             elif userdata[2] == 'stu': #type이 학생이면
                 msg ='!ok/stu/serv' #클라한테 메세지 전송
             send_msg(sock, msg) #성공시 !ok 보내기
-            # userInfo[clnt_num][1] = userdata[0] #로그인때 저장한 데이터 수정
-            # userInfo[clnt_num][2] = userdata[2]
             userInfo.insert(usercnt, [sock, userdata[0], userdata[2], 0]) #sock, ID, type, 채팅속성 로그인시 저장
             usercnt += 1 #로그인 성공시 접속 유저수 +1
             print('sucess 로그인: ')
@@ -222,8 +219,6 @@ def QnA(sock): #Q&A 등록 함수
     if not QnA: 
         send_msg(sock, '!no') #없으면 !no 보내기
         QnAnum = 1
-        # con.close()
-        # return
     else:  #등록된 Q&A가 있을때
         for i in QnA:
             i = list(i)
@@ -233,7 +228,7 @@ def QnA(sock): #Q&A 등록 함수
         
         for j in range(0, len(QnAlist)):
             time.sleep(0.5)
-            send_msg(sock, +QnAlist[j]) #등록된 Q&A 리스트 보내주기
+            send_msg(sock, '!QnA/'+QnAlist[j]) #등록된 Q&A 리스트 보내주기
             QnAnum += j   
     while True:
         msg = recv_msg(sock)
@@ -246,7 +241,7 @@ def QnA(sock): #Q&A 등록 함수
             elif userInfo[clnt_num][2] == 'tea': #선생님일때
                 msg = recv_msg(sock) #등록할 답변과 질문 번호 받기
                 splitmsg = msg.split('/')
-                c.execute('update QnA set Answer = ? where Num = ?', (splitmsg[1], splitmsg[0],)) #답변 등록
+                c.execute('update QnA set Answer = ?, teacherID = ? where Num = ?', (splitmsg[1], userInfo[i][1], splitmsg[0],)) #답변 등록
                 con.commit()
         elif msg == '!quit':
             con.close()
@@ -263,8 +258,6 @@ def updateQuiz(sock): #문제등록 함수
     if not Quiz:   
         send_msg(sock, '!no') #없으면 !no 보내기
         QuizNum= 1
-        #con.close()
-        #return
     else: #등록된 문제가 있을때
         for i in Quiz:
             i = list(i)
@@ -327,10 +320,6 @@ if __name__=='__main__':
 
     while True:
         client_socket, addr = server_socket.accept()
-        
-        # userInfo.insert(usercnt, [client_socket, 0, 0, 0]) #sock, ID, type, 채팅속성 접속시 저장
-        # usercnt += 1
-        
         t=threading.Thread(target=handleclnt, args=(client_socket,))
         t.start()
         
