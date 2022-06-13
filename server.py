@@ -4,6 +4,7 @@ import socket
 import threading
 import sqlite3
 import sys
+import time
 
 BUFSIZE = 1024 #버퍼사이즈
 host = '10.10.20.33' 
@@ -228,9 +229,10 @@ def QnA(sock): #Q&A 등록 함수
             i = list(i)
             i = '/'.join(i) 
             QnAlist.append(i)
-            
         print(QnAlist)
+        
         for j in range(0, len(QnAlist)):
+            time.sleep(0.5)
             send_msg(sock, +QnAlist[j]) #등록된 Q&A 리스트 보내주기
             QnAnum += j   
     while True:
@@ -238,7 +240,7 @@ def QnA(sock): #Q&A 등록 함수
         if msg == '!update':
             if userInfo[clnt_num][2] == 'stu': # 학생일때
                 msg = recv_msg(sock) #등록할 질문 받기
-                c.execute('insert into QnA (Num, Question, Answer, studentID, teacherID) values (?, ?, ?, ?, ?)', (QnAnum, msg, None, userInfo[clnt_num][1], None)) #Q&A 테이블에 질문 등록
+                c.execute('insert into QnA (Num, Question, Answer, studentID, teacherID) values (?, ?, ?, ?, ?)', (QnAnum, msg, '답변대기', userInfo[clnt_num][1], '답변대기')) #Q&A 테이블에 질문 등록
                 con.commit()
                 QnAnum+=1 #질문 등록후 번호+1
             elif userInfo[clnt_num][2] == 'tea': #선생님일때
@@ -270,6 +272,7 @@ def updateQuiz(sock): #문제등록 함수
             Quizlist.append(i)           
         print(Quizlist)
         for j in range(0, len(Quizlist)):
+            time.sleep(0.5)
             send_msg(sock, '!quiz'+'/'+Quizlist[j]) #등록된 Q&A 리스트 보내주기
             QuizNum +=j
     while True:
