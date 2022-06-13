@@ -272,6 +272,7 @@ def updateQuiz(sock): #문제등록 함수
         if userInfo[clnt_num][2] == 'stu': # 학생일때
             print('학생')
             send_msg(sock, '!no') #메세지 보내기
+            con.close()
             return
         elif userInfo[clnt_num][2] == 'tea': #선생님일때
             print('선생님')
@@ -286,8 +287,26 @@ def updateQuiz(sock): #문제등록 함수
             con.commit()
             QuizNum+=1 #질문 등록후 번호+1
 
-def updateAnswer(sock):   
-    pass 
+def updateAnswer(sock):
+    con, c = getcon()
+    c.execute('select * from quiz')
+    Quiz = c.fetchall() 
+    answerlist = []
+    Quiz = list(Quiz)
+    answercnt=0         
+    print(Quiz)
+    while True:
+        answer = recv_msg(sock)
+        if answer == '!done':
+            break
+        else:
+            answersplit = answer.split('/')
+            answerlist.extend(answercnt, [answersplit[0],answersplit[1]])
+    print(answerlist)
+    con.close()
+    return
+            
+        
 
 def handleclnt(sock): # 클라정보 수신 스레드
     while True:
@@ -299,7 +318,7 @@ def handleclnt(sock): # 클라정보 수신 스레드
             login(sock)
         elif data == '!chat': #!chat 받으면 상담모드 변경 함수 실행
             chatmode(sock)
-        elif data == '!Q&A':# Q&A 받으면 Q&A 함수 실행
+        elif data == '!QnA':# Q&A 받으면 Q&A 함수 실행
             QnA(sock)
         elif data == '!quiz': #!quiz받으면 문제출제 함수 실행
             updateQuiz(sock)
