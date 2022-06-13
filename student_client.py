@@ -68,7 +68,6 @@ class regit(QDialog): #가입창
         #이벤트
         self.id_chk.clicked.connect(self.check_id)
         self.regit_button.clicked.connect(self.check_pw) #이게 눌렀을떄 연결임
-               
 
     def check_id(self):
         id = self.idbar.text()  # 텍스트창에입력된거 id에 넣고
@@ -169,7 +168,7 @@ class studentui(QMainWindow): # 학생 ui
         sock.send(f'{self.choice_teacher.text()}'.encode()) # 적었던 상담하고 싶은 선생님 이름 서버로 전송
         self.counseling_browser.append("선생님을 기다리는중...")
 
-    def recv_msg(self): # 서버에서 실시간 상담 메시지를 받음
+    def recv_msg(self): # 서버에서 메시지 받음 (선생님 접속현황 띄우게 만들고 학생 접속현황 띄우게 만들고 다중 접속 채팅 구현 해야함)
         while True:
             a = sock.recv(1024).decode() # 상담 채팅방 메시지 받기
             print(a)
@@ -213,11 +212,11 @@ class studentui(QMainWindow): # 학생 ui
                 cur = con.cursor()
                 rows = cur.execute('select * from quiz')
                 for row in rows:
-                    self.quiz_widget.setRowCount((i + 1)) # 0번째 행은 분류명이 적혀있으니까 1을 증가시킴
-                    changetype = list(row) # 데이터베이스에서 가져올때 튜플의 형태이기 때문에 리스트로 바꿔줌
+                    self.quiz_widget.setRowCount((i + 1)) # 1을 증가시킴
+                    changetype = list(row) # 튜플의 형태이기 때문에 리스트로 바꿔줌
                     self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
                     self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
-                    for j in range(1): #
+                    for j in range(1):
                         self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
                     i += 1
 
@@ -241,6 +240,13 @@ class studentui(QMainWindow): # 학생 ui
                 self.lcdNumber.display(self.score) # 점수 표시
             else:
                 print(f'{i + 1}번 오답') # 오답이야~
+        for i in range(20):
+            print(self.final_answer_list)
+            if self.final_answer_list[i] == '':
+                pass
+            else:
+                sleep(0.5)
+                sock.send(f'{self.quiz_list[i]}/{self.final_answer_list[i]}'.encode()) # 문제 풀이 후 서버로 문제와 적은 답 전송
         if -1 < self.score < 20: # 각 점수별로 뜨는 메시지 박스 (그냥 만들긴 했는데 필요있는지는 모르겠구요)
             QMessageBox.information(self, "놀았니?", f'{self.score}점\n공부 안했나요?')
         elif 19 < self.score < 40:
@@ -251,21 +257,20 @@ class studentui(QMainWindow): # 학생 ui
             QMessageBox.information(self, "합격!", f'{self.score}점\n합격했습니다!')
         elif 79 < self.score < 101:
             QMessageBox.information(self, "선생님은 만족했다", f'{self.score}점')
-        for i in range(self.quiz_widget.rowCount()):
-            self.quiz_widget.removeRow(0)
+        self.quiz_widget.setRowCount(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
         self.stackedWidget.setCurrentIndex(3)
         sock.send('!Q&A'.encode())
 
     def time_time(self): # 문제 풀이 타이머
-        if self.time_ss == -1: # 초가 -1로 바뀔때 값 재설정
+        if self.time_ss == 0: # 초가 -1로 바뀔때 값 재설정
             self.time_ss = 59
             self.time_mm -= 1
             self.timer_label.setText(f'{self.time_mm} : {self.time_ss}')
-        elif len(str(self.time_ss)) == 1: # 초가 10 밑으로 내려가면서 1자리 수로 바뀔때 앞에 0을 붙여서 출력
-            self.timer_label.setText(f'{self.time_mm} : 0{self.time_ss}')
+        elif self.time_ss < 11: # 초가 1자리로 바뀔 때 부터 0을 붙여서 출력하기 위한 것
             self.time_ss -= 1
+            self.timer_label.setText(f'{self.time_mm} : 0{self.time_ss}')
         else:
             self.time_ss -= 1
             self.timer_label.setText(f'{self.time_mm} : {self.time_ss}')
@@ -352,10 +357,9 @@ class studentui(QMainWindow): # 학생 ui
         self.counseling_browser.clear()
         exitMsg = '!quit'
         sock.send(exitMsg.encode())
-        for i in range(self.quiz_widget.rowCount()):
-            self.quiz_widget.removeRow(0)
-        for i in range(self.qna_widget.rowCount()):
-            self.qna_widget.removeRow(0)
+        self.quiz_widget.setRowCount(0)
+        self.qna_widget.setRowCount(0)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
