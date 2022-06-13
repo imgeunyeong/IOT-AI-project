@@ -124,6 +124,8 @@ class studentui(QMainWindow): # 학생 ui
         self.qna_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # qna 테이블 위젯 읽기 모드로 변경
         self.quiz_list = [] # 퀴즈 문제 담기용 리스트
         self.answer_list = [] # 퀴즈 답 담기용 리스트
+        self.q_list = [] # 질문 담기용 리스트
+        self.a_list = [] # 답변 담기용 리스트
         self.final_answer_list = [] # 학생이 적은 답 담기 리스트
         self.score = 0 # 학생이 푼 문제 점수 할당용
         self.timer = QTimer(self) # 문제풀이 제한시간용 타이머
@@ -168,11 +170,12 @@ class studentui(QMainWindow): # 학생 ui
         sock.send(f'{self.choice_teacher.text()}'.encode()) # 적었던 상담하고 싶은 선생님 이름 서버로 전송
         self.counseling_browser.append("선생님을 기다리는중...")
 
-    def recv_msg(self): # 서버에서 메시지 받음 (선생님 접속현황 띄우게 만들고 학생 접속현황 띄우게 만들고 다중 접속 채팅 구현 해야함)
+    def recv_msg(self): # 서버에서 메시지 받음
+        con = sqlite3.connect('stu_client.db')
         while True:
-            a = sock.recv(1024).decode() # 상담 채팅방 메시지 받기
-            print(a)
-            if a == '!invite/serv':
+            msg = sock.recv(1024).decode()
+            r_msg = msg.split('/')
+            if msg == '!invite/serv':
                 invite = QMessageBox.information(self, "채팅 초대", "초대가 도착했습니다\n수락하시겠습니까?", QMessageBox.Yes | QMessageBox.No)
                 if invite == QMessageBox.Yes:
                     sock.send("!ok".encode())
@@ -181,8 +184,13 @@ class studentui(QMainWindow): # 학생 ui
                     sock.send('!chat'.encode())  # 채팅창 접속 신호 보냄
                 else:
                     sock.send("!no".encode())
+            elif r_msg[0] == '!QnA':
+                with con:
+                    cur = con.cursor()
+                    cur.execute(f'insert into qna values ("{r_msg[2]}","{r_msg[3]}")')
+                    print("성공")
             else:
-                self.counseling_browser.append(a)  # 받은 메시지 브라우저에 추가
+                self.counseling_browser.append(msg)  # 받은 메시지 브라우저에 추가
 
     def send_msg(self): # 서버로 실시간 상담 메시지를 보냄
         if self.counseling_line.text() == '': # 빈칸이면 무시
@@ -242,11 +250,14 @@ class studentui(QMainWindow): # 학생 ui
                 print(f'{i + 1}번 오답') # 오답이야~
         for i in range(20):
             print(self.final_answer_list)
+            if i == 19:
+                sock.send('!done'.encode())
             if self.final_answer_list[i] == '':
                 pass
             else:
                 sleep(0.5)
                 sock.send(f'{self.quiz_list[i]}/{self.final_answer_list[i]}'.encode()) # 문제 풀이 후 서버로 문제와 적은 답 전송
+
         if -1 < self.score < 20: # 각 점수별로 뜨는 메시지 박스 (그냥 만들긴 했는데 필요있는지는 모르겠구요)
             QMessageBox.information(self, "놀았니?", f'{self.score}점\n공부 안했나요?')
         elif 19 < self.score < 40:
@@ -260,6 +271,10 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_widget.setRowCount(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
+        con = sqlite3.connect('stu_client.db')
+        cur = con.cursor()
+        with con:
+            cur.execute('delete from qna')
         self.stackedWidget.setCurrentIndex(3)
         sock.send('!Q&A'.encode())
 
@@ -291,8 +306,8 @@ class studentui(QMainWindow): # 학생 ui
                 con = sqlite3.connect('stu_client.db')
                 with con:
                     cur = con.cursor()
-                    cur.execute(f'insert into qna values ("{self.qna_line.text()}", " ")')  # 학생 데이터베이스에 질문 내용 저장
                     sock.send(f'!update{self.qna_line.text()}'.encode())  # 서버로 질문 내용 전송
+                    sleep(0.5)
                     rows = cur.execute('select * from qna')
                     for row in rows:
                         self.qna_widget.setRowCount((i + 1))
@@ -303,11 +318,13 @@ class studentui(QMainWindow): # 학생 ui
                 sock.send(self.qna_line.text().encode()) # 질문 내용 서버로 전송
                 self.qna_line.clear()
                 QMessageBox.information(self, "등록완료", "질문이 등록되었습니다", QMessageBox.Yes)
+
             else:
                 QMessageBox.information(self, "미 등록","질문을 다시 입력해주세요", QMessageBox.Yes)
                 self.qna_line.clear()
 
     def reload(self): # qna 창 새로고침 함수 (서버에서 받아온 값 추가 되었을 때 새로고침)
+        sock.send('!Q&A'.encode())
         i = 0 # 값 초기화 안해주면 여름철 모기처럼 무한 증식
         con = sqlite3.connect('stu_client.db')
         with con:
