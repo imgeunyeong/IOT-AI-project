@@ -232,7 +232,7 @@ def QnA(sock): #Q&A 등록 함수
             QnAnum += j   
     while True:
         msg = recv_msg(sock)
-        if msg == '!update':
+        if '!update' in msg:
             if userInfo[clnt_num][2] == 'stu': # 학생일때
                 msg = recv_msg(sock) #등록할 질문 받기
                 c.execute('insert into QnA (Num, Question, Answer, studentID, teacherID) values (?, ?, ?, ?, ?)', (QnAnum, msg, '답변대기', userInfo[clnt_num][1], '답변대기')) #Q&A 테이블에 질문 등록
