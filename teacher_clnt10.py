@@ -11,9 +11,10 @@ import socket
 import threading
 import time
 
-sock=socket.create_connection(('127.0.01',9026))
+sock=socket.create_connection(('10.10.20.33',9026))
 id=''
 serv_msg=''
+i=0
 
 class login (QDialog):
     def __init__(self):
@@ -118,14 +119,14 @@ class recv(QThread):
             serv_msg=sock.recv(1024).decode()  
             print(f'서버의메세지: {serv_msg}')
             if serv_msg== '!invite/serv':           
-                #classinst=teacherui()
-                #classinst.request()
                 classinst=teacherui()
                 teacherui.request(classinst)
+            elif "!quiz" in serv_msg:
+                self.sig2.emit(serv_msg)               
 
             else:
                 self.sig.emit(serv_msg) #serv_msg를 다른 클래스로 전송 emit으로 시그널을 발생시킴
-                self.sig2.emit(serv_msg)
+         
                 # 전달하고 싶은 데이터가 있으면 데이터를 넣어주고 데이터에 맞는 타입을 정의한다.
 
 class teacherui(QMainWindow):
@@ -140,10 +141,11 @@ class teacherui(QMainWindow):
 
         self.qThread = recv()  
         self.qThread.sig.connect(self.print_data) #sig 라는 이벤트가 발생하면
+        self.qThread.sig2.connect(self.recv_quiz) #sig2라는 이벤트가 발생하면 recv_quiz 함수 실행
+       
         self.qThread.demon=True
         self.qThread.start()
-
-
+        #버튼들
         self.study_button.clicked.connect(self.manage)
         self.quiz_button.clicked.connect(self.make_quiz)
         self.question_button.clicked.connect(self.QNA)
@@ -155,7 +157,7 @@ class teacherui(QMainWindow):
 
     @pyqtSlot(str) # 전달 받은 데이터의 타입이 str이다
     def print_data(self, data): # 전달 받은 데이터를 data에 넣는다.
-        self.counseling_browser.append(data)  #recv한 데이터 상담 화면에 추가
+        self.counseling_browser.append(data)#recv한 데이터 상담 화면에 추가
         
 
     def manage(self):
@@ -166,55 +168,29 @@ class teacherui(QMainWindow):
     def make_quiz(self):
         print('임시1')
         self.stackedWidget.setCurrentIndex(2)
-        sock.sendall("!question".encode())
+        sock.sendall("!quiz".encode())
         self.back_button_2.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
         self.tableWidget.setRowCount(10)
 
-        #self.quiz_line.returnPressed.connect(lambda:self.quiz_browser.append(self.quiz_line.text()))
-        self.quiz_line.returnPressed.connect(self.send_quiz)
+        self.quiz_line.returnPressed.connect(self.send_quiz) #등록버튼 누르면
 
-    @pyqtSlot(str) # 전달 받은 데이터의 타입이 str이다
-    def print_data(self, data): # 전달 받은 데이터를 data에 넣는다.
-        servdata = data.split('/')
-        self.tablewidget.setItem(0, i, QTableWidgetItem(str(servdata[0]))) #문제    
-         #for j in range(0, 1):
-        self.tableWidget.setItem(1,i,QTableWidgetItem(str(servdata[1]))) #답 
-        i+=1
-        #self.tableWidget.setItem(0,0,QTableWidgetItem("안녕")) #추가가 안됨...  
-        self.quiz_line.clear()
-        """
-        for i in msg.split("@list_q "):
-                if i == "done" or i == "empty":
-                    self.row = 1
-                    break
-
-                self.listWidget_2.setRowCount(self.row)
-                self.listWidget_2.setItem(self.row-1, 0, QTableWidgetItem(i.split("/")[2]))
-                self.listWidget_2.setItem(self.row-1, 1, QTableWidgetItem(i.split("/")[3]))
-                self.row += 1
-        """
-
-
-
-    def send_quiz(self):
-        print('퀴즈확인')
-        sock.sendall(self.quiz_line.text().encode())
-        data=sock.recv(1024).decode()
-        print(f"data:{data}")
-        servdata = data.split('/')
-        print(f"serv_data{servdata}")
-        
-        #0,? (문제/0행) 1,?(답/1행)   
-        #for i in range(0, 1):
-        self.tablewidget.setItem(0, i, QTableWidgetItem(str(servdata[0]))) #문제    
-         #for j in range(0, 1):
-        self.tableWidget.setItem(1,i,QTableWidgetItem(str(servdata[1]))) #답 
-        i+=1
-        #self.tableWidget.setItem(0,0,QTableWidgetItem("안녕")) #추가가 안됨...  
+    
+    def send_quiz(self): # 전달 받은 데이터를 data에 넣는다.
+        quiz=self.quiz_line.text()
+        sock.sendall(quiz.encode())
         self.quiz_line.clear()
 
+    @pyqtSlot(str) # 서버에서 !quiz 보내주면 실행됨(sig2 라는 시그널 받으면)
+    def recv_quiz(self,data):
+        global i
+        servdata = data.split('/')
+        self.tableWidget.setItem(0, i, QTableWidgetItem(str(servdata[1]))) #문제    
+        #for j in range(0, 1):
+        self.tableWidget.setItem(1,i,QTableWidgetItem(str(servdata[2]))) #답 
+        i+=1
 
    
+
     def QNA(self):
         print('임시')
         self.stackedWidget.setCurrentIndex(3)
