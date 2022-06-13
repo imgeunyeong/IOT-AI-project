@@ -184,11 +184,10 @@ class teacherui(QMainWindow):
     def recv_quiz(self,data):
         global i
         servdata = data.split('/')
-        self.tableWidget.setItem(0, i, QTableWidgetItem(str(servdata[1]))) #문제    
+        self.tableWidget.setItem(i, 0, QTableWidgetItem(str(servdata[2]))) #문제    
         #for j in range(0, 1):
-        self.tableWidget.setItem(1,i,QTableWidgetItem(str(servdata[2]))) #답 
+        self.tableWidget.setItem(i,1,QTableWidgetItem(str(servdata[3]))) #답 
         i+=1
-
    
 
     def QNA(self):
