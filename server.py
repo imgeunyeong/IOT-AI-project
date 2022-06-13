@@ -11,8 +11,6 @@ port = 9026
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
 roomNum = 1 #채팅속성
-QnAnum = 1 #질문 번호
-QuestionNum = 1 #문제번호
 lock=threading.Lock() 
 
 def getcon(): #db와 연결 함수
@@ -214,7 +212,7 @@ def chat(clnt_num): # 채팅 함수
 
 def QnA(sock): #Q&A 등록 함수
     #수정중
-    global QnAnum
+    QnAnum = 2
     clnt_num = findNum(sock)
     con, c = getcon()
     QnAlist = []
@@ -222,16 +220,19 @@ def QnA(sock): #Q&A 등록 함수
     QnA = c.fetchall()
     if not QnA: 
         send_msg(sock, '!no') #없으면 !no 보내기
-        con.close()
-        return
+        QnAnum = 1
+        # con.close()
+        # return
     else:  #등록된 Q&A가 있을때
         for i in QnA:
             i = list(i)
             i = '/'.join(i) 
-            QnAlist.append(i)     
+            QnAlist.append(i)
+            
         print(QnAlist)
         for j in range(0, len(QnAlist)):
-            send_msg(sock, QnAlist[j]) #등록된 Q&A 리스트 보내주기
+            send_msg(sock, +QnAlist[j]) #등록된 Q&A 리스트 보내주기
+            QnAnum += j   
     while True:
         msg = recv_msg(sock)
         if msg == '!update':
@@ -249,26 +250,28 @@ def QnA(sock): #Q&A 등록 함수
             con.close()
             return
 
-def updateQuestion(sock): #문제등록 함수
+def updateQuiz(sock): #문제등록 함수
     #수정중
-    global QuestionNum
+    QuizNum = 2
     clnt_num = findNum(sock)
     con, c = getcon()
-    Questionlist = []
-    c.execute('select * from question')
-    Question = c.fetchall()
-    if not Question:   
+    Quizlist = []
+    c.execute('select * from quiz')
+    Quiz = c.fetchall()
+    if not Quiz:   
         send_msg(sock, '!no') #없으면 !no 보내기
-        con.close()
-        return
+        QuizNum= 1
+        #con.close()
+        #return
     else: #등록된 문제가 있을때
-        for i in Question:
+        for i in Quiz:
             i = list(i)
             i = '/'.join(i) 
-            Questionlist.append(i)     
-        print(Questionlist)
-        for j in range(0, len(Questionlist)):
-            send_msg(sock, Questionlist[j]) #등록된 Q&A 리스트 보내주기
+            Quizlist.append(i)           
+        print(Quizlist)
+        for j in range(0, len(Quizlist)):
+            send_msg(sock, '!quiz'+'/'+Quizlist[j]) #등록된 Q&A 리스트 보내주기
+            QuizNum +=j
     while True:
         if userInfo[clnt_num][2] == 'stu': # 학생일때
             print('학생')
@@ -276,24 +279,21 @@ def updateQuestion(sock): #문제등록 함수
             return
         elif userInfo[clnt_num][2] == 'tea': #선생님일때
             print('선생님')
-            Question = recv_msg(sock)
-            print(Question)
-            if Question == '!quit':
+            Quiz = recv_msg(sock)
+            print(Quiz)
+            if Quiz == '!quit':
                 con.close()
                 return
-            splitQuestion = Question.split('/')
-            c.execute('insert into question (Num, Question, Answer) values (?, ?, ?)', (QuestionNum, splitQuestion[0], splitQuestion[1]),) #question 테이블에 퀴즈 등록
+            splitQuiz = Quiz.split('/')
+            c.execute('insert into quiz (Num, Quiz, Answer) values (?, ?, ?)', (QuizNum, splitQuiz[0], splitQuiz[1]),) #question 테이블에 퀴즈 등록
+            send_msg(sock, '!quiz/'+splitQuiz[0]+'/'+splitQuiz[1])
             con.commit()
-            QuestionNum+=1 #질문 등록후 번호+1
+            QuizNum+=1 #질문 등록후 번호+1
 
 def updateAnswer(sock):   
     pass 
 
 def handleclnt(sock): # 클라정보 수신 스레드
-    # if sock in userInfo:
-    #     clnt_num = findNum(sock)
-    #     if userInfo[clnt_num][3] == 1:
-    #         chat(clnt_num)
     while True:
         data = recv_msg(sock)
         print('data: '+data)
@@ -305,8 +305,8 @@ def handleclnt(sock): # 클라정보 수신 스레드
             chatmode(sock)
         elif data == '!Q&A':# Q&A 받으면 Q&A 함수 실행
             QnA(sock)
-        elif data == '!question': #!question받으면 문제출제 함수 실행
-            updateQuestion(sock)
+        elif data == '!quiz': #!quiz받으면 문제출제 함수 실행
+            updateQuiz(sock)
         elif data == '!answer':
             updateAnswer(sock)
         elif data == '!exit': #!exit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
