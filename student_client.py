@@ -187,16 +187,17 @@ class studentui(QMainWindow): # 학생 ui
                 else:
                     sock.send("!no".encode())
             elif r_msg[0] == '!QnA': # r_msg[1], r_msg[2] 넣어야 함 반복문으로 추가
-                print(r_msg)
                 self.qna_count+=1
                 self.qna_widget.setRowCount(self.qna_count)
                 self.qna_widget.setItem(self.qna_count-1, 0, QTableWidgetItem(r_msg[2]))# [1/q/a]
                 self.qna_widget.setItem(self.qna_count-1, 1, QTableWidgetItem(r_msg[3]))
-            elif r_msg[0] == '!answer':
+            elif r_msg[0] == '!quiz':
+                print("성공")
                 self.quiz_count += 1
                 self.quiz_widget.setRowCount(self.quiz_count)
-                self.quiz_widget.setItem(self.quiz_count-1, 0, QTableWidgetItem(r_msg[1]))
-                self.answer_list.append(r_msg[2])
+                self.quiz_widget.setItem(self.quiz_count-1, 0, QTableWidgetItem(r_msg[2]))
+                self.answer_list.append(r_msg[3])
+                print(self.answer_list)
             else:
                 self.counseling_browser.append(msg)  # 받은 메시지 브라우저에 추가
 
@@ -210,7 +211,7 @@ class studentui(QMainWindow): # 학생 ui
 
     def quiz_page(self): # 문제만 할당하고 Db에 있는 문제와 답이 일치 할 때 정답처리 리스트에 넣어서 해야하나?
         self.stackedWidget.setCurrentIndex(2)
-        sock.send('!answer'.encode()) # 서버로 신호 전송
+        sock.send('!quiz'.encode()) # 서버로 신호 전송
         self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
 
     def quiz_start(self): # 시작 버튼 누르면 퀴즈 할당
@@ -223,19 +224,6 @@ class studentui(QMainWindow): # 학생 ui
             self.quiz_complete_btn.setEnabled(True) # 제출 버튼 활성화
             self.score = 0 # 점수 초기화
             self.lcdNumber.display(self.score) # 점수 표시 디스플레이
-            i = 0
-            con = sqlite3.connect('stu_client.db')
-            with con:
-                cur = con.cursor()
-                rows = cur.execute('select * from quiz')
-                for row in rows:
-                    self.quiz_widget.setRowCount((i + 1)) # 1을 증가시킴
-                    changetype = list(row) # 튜플의 형태이기 때문에 리스트로 바꿔줌
-                    self.quiz_list.append(changetype[0]) # 퀴즈만 리스트에 추가 하는거긴 한데 어디다 쓰지?
-                    self.answer_list.append(changetype[1]) # 학생이 적은 답이랑 비교하기 위해 퀴즈 답 리스트에 추가
-                    for j in range(1):
-                        self.quiz_widget.setItem(i, j, QTableWidgetItem(str(changetype[j]))) # 테이블 위젯에 문제만 추가
-                    i += 1
 
     def complete(self): # 문제 풀이 후 제출 완료
         self.back_button_2.setEnabled(True)  # 돌아가기 버튼 활성화
