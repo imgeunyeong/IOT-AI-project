@@ -1,10 +1,13 @@
 from collections import UserDict
 from concurrent.futures import thread
+from posixpath import split
 import socket
 import threading
 import sqlite3
 import sys
 import time
+
+from pkg_resources import ContextualVersionConflict
 
 BUFSIZE = 1024 #버퍼사이즈
 host = '10.10.20.33' 
@@ -74,7 +77,7 @@ def signup(sock): #회원가입 처리 함수
         print('succes 회원가입')
         return        
     elif userdata[3] == 'stu': #학생
-        c.execute('insert into studentInfo (ID, PW, Name, type) values (?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3])) #학생 테이블에 데이터 저장
+        c.execute('insert into studentInfo (ID, PW, Name, type, correctAnswer, wrongAnswer) values (?, ?, ?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3], 0, 0,)) #학생 테이블에 데이터 저장
         con.commit()
         con.close()
         print('succes 회원가입')
@@ -241,7 +244,7 @@ def QnA(sock): #Q&A 등록 함수
             elif userInfo[clnt_num][2] == 'tea': #선생님일때
                 msg = recv_msg(sock) #등록할 답변과 질문 번호 받기
                 splitmsg = msg.split('/')
-                c.execute('update QnA set Answer = ?, teacherID = ? where Num = ?', (splitmsg[1], userInfo[i][1], splitmsg[0],)) #답변 등록
+                c.execute('update QnA set Answer = ?, teacherID = ? where Num = ?', (splitmsg[1], userInfo[clnt_num][1], splitmsg[0],)) #답변 등록
                 con.commit()
         elif msg == '!quit':
             con.close()
@@ -282,29 +285,36 @@ def updateQuiz(sock): #문제등록 함수
                 con.close()
                 return
             splitQuiz = Quiz.split('/')
-            c.execute('insert into quiz (Num, Quiz, Answer) values (?, ?, ?)', (QuizNum, splitQuiz[0], splitQuiz[1]),) #question 테이블에 퀴즈 등록
+            c.execute('insert into quiz (Num, Quiz, Answer) values (?, ?, ?)', (QuizNum, splitQuiz[0], splitQuiz[1]),) #quiz 테이블에 퀴즈 등록
             send_msg(sock, '!quiz/'+splitQuiz[0]+'/'+splitQuiz[1])
             con.commit()
             QuizNum+=1 #질문 등록후 번호+1
 
 def updateAnswer(sock):
     con, c = getcon()
-    c.execute('select * from quiz')
-    Quiz = c.fetchall() 
+    clnt_num = findNum(sock)
     answerlist = []
-    Quiz = list(Quiz)
-    answercnt=0         
-    print(Quiz)
-    while True:
-        answer = recv_msg(sock)
-        if answer == '!done':
-            break
-        else:
-            answersplit = answer.split('/')
-            answerlist.extend(answercnt, [answersplit[0],answersplit[1]])
-    print(answerlist)
-    con.close()
-    return
+    c.execute('select * from quiz')
+    Quiz = c.fetchall()     
+    for i in Quiz:
+        i = list(i)
+        i = '/'.join(i) 
+        answerlist.append(i)
+    print(answerlist) 
+    if userInfo[clnt_num][2] == 'stu':
+        for j in range(0, len(answerlist)):
+                time.sleep(0.5)
+                send_msg(sock, '!answer/'+answerlist[j]) #퀴즈 문제/정답 보내주기
+        correct = recv_msg(sock)
+        splitcorrect = correct.split('/')
+        c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ? where ID = ?',(splitcorrect[0], splitcorrect[1], userInfo[clnt_num][1],))
+        con.commit()
+        con.close()
+        return      
+    elif userInfo[clnt_num][2] == 'tea':
+        send_msg(sock, '!no')
+        con.close()
+        return
             
         
 
