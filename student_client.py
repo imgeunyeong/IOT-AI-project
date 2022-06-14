@@ -23,7 +23,7 @@ class login (QDialog):
 
     def input_login(self): #실행확인용함수
         global id
-        sock.send('!login'.encode())
+        sock.sendall('!login'.encode())
         id = self.idbar.text() #텍스트 가져옴
         pw = self.pwbar.text()
         info = id + '/' + pw
@@ -39,16 +39,13 @@ class login (QDialog):
         print(ch) 
         chlist = ch.split('/')
         if chlist[0] == '!ok': #데이터베이스에 있으면 (데이터베이스는 !ok or !no/'stu' or 'tea' 형태로 보냄)
-            print(f' 1 : {chlist}')
             if chlist[1] == 'stu':
                 self.close()
                 student_show = studentui()
                 student_show.show()
 
             elif chlist[1]=='tea':
-                self.close() #로그인ui를닫음(self가 현재 login class임)
-                teacherui_show = teacherui() # 클래스담고
-                teacherui_show.exec_() #클래스실행(가입창)
+                print("teacher.ui 넣는 자리")
             
             else:
                 QMessageBox.warning(self, 'Warning', '아이디,비밀번호를 확인해주세요')
@@ -131,6 +128,7 @@ class studentui(QMainWindow): # 학생 ui
         self.timer = QTimer(self) # 문제풀이 제한시간용 타이머
         self.time_mm = 19 # 제한시간 분 설정
         self.time_ss = 60 # 제한시간 초 설정
+        self.qna_count =0
         tea_msg = Thread(target=self.recv_msg)  # 서버로부터 채팅방 메시지 받는 스레드 구동
         tea_msg.start()
 
@@ -171,7 +169,6 @@ class studentui(QMainWindow): # 학생 ui
         self.counseling_browser.append("선생님을 기다리는중...")
 
     def recv_msg(self): # 서버에서 메시지 받음
-        con = sqlite3.connect('stu_client.db')
         while True:
             msg = sock.recv(1024).decode()
             r_msg = msg.split('/')
@@ -184,11 +181,12 @@ class studentui(QMainWindow): # 학생 ui
                     sock.send('!chat'.encode())  # 채팅창 접속 신호 보냄
                 else:
                     sock.send("!no".encode())
-            elif r_msg[0] == '!QnA':
-                with con:
-                    cur = con.cursor()
-                    cur.execute(f'insert into qna values ("{r_msg[2]}","{r_msg[3]}")')
-                    print("성공")
+            elif r_msg[0] == '!QnA': # r_msg[1], r_msg[2] 넣어야 함 반복문으로 추가
+                print(r_msg)
+                self.qna_count+=1
+                self.qna_widget.setRowCount(self.qna_count)
+                self.qna_widget.setItem(self.qna_count-1, 0, QTableWidgetItem(r_msg[2]))# [1/q/a]
+                self.qna_widget.setItem(self.qna_count-1, 1, QTableWidgetItem(r_msg[3]))
             else:
                 self.counseling_browser.append(msg)  # 받은 메시지 브라우저에 추가
 
@@ -271,10 +269,7 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_widget.setRowCount(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
-        con = sqlite3.connect('stu_client.db')
-        cur = con.cursor()
-        with con:
-            cur.execute('delete from qna')
+        self.qna_count = 0
         self.stackedWidget.setCurrentIndex(3)
         sock.send('!Q&A'.encode())
 
@@ -302,47 +297,21 @@ class studentui(QMainWindow): # 학생 ui
         else:
             check = QMessageBox.information(self, "질문 등록", f'<{self.qna_line.text()}>\n등록하시는 질문이 맞나요?', QMessageBox.Yes | QMessageBox.No)
             if check == QMessageBox.Yes:
-                i = 0  # 학습하기와 동일 range값만 바꿔줌
-                con = sqlite3.connect('stu_client.db')
-                with con:
-                    cur = con.cursor()
-                    sock.send(f'!update{self.qna_line.text()}'.encode())  # 서버로 질문 내용 전송
-                    sleep(0.5)
-                    rows = cur.execute('select * from qna')
-                    for row in rows:
-                        self.qna_widget.setRowCount((i + 1))
-                        changetype = list(row)
-                        for j in range(2):
-                            self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
-                        i += 1
+                sock.send(f'!update{self.qna_line.text()}'.encode())  # 서버로 질문 내용 전송
+                sleep(0.5)
                 sock.send(self.qna_line.text().encode()) # 질문 내용 서버로 전송
                 self.qna_line.clear()
                 QMessageBox.information(self, "등록완료", "질문이 등록되었습니다", QMessageBox.Yes)
-
             else:
                 QMessageBox.information(self, "미 등록","질문을 다시 입력해주세요", QMessageBox.Yes)
                 self.qna_line.clear()
 
-    def reload(self): # qna 창 새로고침 함수 (서버에서 받아온 값 추가 되었을 때 새로고침)
+    def reload(self): # qna 창 새로고침 함수 (서버에서 받아온 값 추가 되었을 때 새로고침) #########################수정
         exitMsg = '!quit'
         sock.send(exitMsg.encode())
         sleep(0.5)
+        self.qna_count = 0
         sock.send('!Q&A'.encode())
-        sleep(5)
-        i = 0 # 값 초기화 안해주면 여름철 모기처럼 무한 증식
-        con = sqlite3.connect('stu_client.db')
-        with con:
-            cur = con.cursor()
-            rows = cur.execute('select * from qna')
-            for row in rows:
-                self.qna_widget.setRowCount((i + 1))
-                changetype = list(row)
-                for j in range(2):
-                    self.qna_widget.setItem(i, j, QTableWidgetItem(str(changetype[j])))
-                i += 1
-        with con:
-            cur.execute('delete from qna')
-
 
     def test(self): # 테스트용 함수
         print("test1")
