@@ -117,6 +117,11 @@ class studentui(QMainWindow): # 학생 ui
         self.button_click() # 여러가지 작용 함수 더미
         self.icon = QIcon('talk.png') # 프로그램 아이콘 추가 (토크* 에서 가져온 아이콘) (png 파일 없으면 안뜸)
         self.setWindowIcon(self.icon)
+        self.main_page_label.setPixmap(QPixmap("image/항목선택.png"))
+        self.study_page_label.setPixmap(QPixmap("image/스터디.png"))
+        self.quiz_page_label.setPixmap(QPixmap("image/문제풀이.png"))
+        self.qna_page_label.setPixmap(QPixmap("image/QnA.png"))
+        self.counseling_page_label.setPixmap(QPixmap("image/상담.png"))
         self.study_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # 학습 테이블 위젯 읽기 모드로 변경 (수정모드로 바꾸려면 NoEdit --> AllEdit 으로 변경)
         self.qna_widget.setEditTriggers(QAbstractItemView.NoEditTriggers) # qna 테이블 위젯 읽기 모드로 변경
         self.quiz_list = [] # 퀴즈 문제 담기용 리스트
@@ -128,7 +133,8 @@ class studentui(QMainWindow): # 학생 ui
         self.timer = QTimer(self) # 문제풀이 제한시간용 타이머
         self.time_mm = 19 # 제한시간 분 설정
         self.time_ss = 60 # 제한시간 초 설정
-        self.qna_count =0
+        self.qna_count =0 # qna 카운트
+        self.quiz_count = 0 # 퀴즈 카운트
         tea_msg = Thread(target=self.recv_msg)  # 서버로부터 채팅방 메시지 받는 스레드 구동
         tea_msg.start()
 
@@ -154,7 +160,6 @@ class studentui(QMainWindow): # 학생 ui
         super().__init__() # QMainwindow를 상속 받아서 새로 생성
         self.setWindowTitle("상담하고 싶은 선생님 입력 후 ENTER")
         self.setGeometry(400, 400, 400, 100) # mainwindow 위치 설정
-        self.setStyleSheet("color: rgb(131, 56, 236); background-color: qlineargradient(spread:pad, x1:0.125, y1:0.892227, x2:0.865, y2:0.130727, stop:0.208333 rgba(128, 106, 174, 255), stop:0.645833 rgba(204, 106, 201, 255));border: 1.5px solid rgb(58, 134, 255);border-radius: 5px;")
         # pyqt에서 스타일 시트 설정 들어가서 내 맘대로 편집한다음에 코드 가져오기
         self.choice_teacher = QLineEdit(self) # 상담할 선생님을 적기 위한 라인 에딧 추가
         self.choice_teacher.setGeometry(60, 25, 280, 50) # 위치지정
@@ -187,6 +192,11 @@ class studentui(QMainWindow): # 학생 ui
                 self.qna_widget.setRowCount(self.qna_count)
                 self.qna_widget.setItem(self.qna_count-1, 0, QTableWidgetItem(r_msg[2]))# [1/q/a]
                 self.qna_widget.setItem(self.qna_count-1, 1, QTableWidgetItem(r_msg[3]))
+            elif r_msg[0] == '!answer':
+                self.quiz_count += 1
+                self.quiz_widget.setRowCount(self.quiz_count)
+                self.quiz_widget.setItem(self.quiz_count-1, 0, QTableWidgetItem(r_msg[1]))
+                self.answer_list.append(r_msg[2])
             else:
                 self.counseling_browser.append(msg)  # 받은 메시지 브라우저에 추가
 
@@ -204,6 +214,7 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
 
     def quiz_start(self): # 시작 버튼 누르면 퀴즈 할당
+        self.back_button_2.setEnabled(False) # 돌아가기 버튼 비활성화
         start = QMessageBox.information(self, "문제 풀이", "제한시간은 20분입니다\n시작합니다!", QMessageBox.Yes)
         if start == QMessageBox.Yes:
             self.timer.start(1000) # 1초마다 타이머 작동
@@ -227,6 +238,7 @@ class studentui(QMainWindow): # 학생 ui
                     i += 1
 
     def complete(self): # 문제 풀이 후 제출 완료
+        self.back_button_2.setEnabled(True)  # 돌아가기 버튼 활성화
         self.quiz_start_btn.setEnabled(True)  # 시작 버튼 활성화
         self.quiz_complete_btn.setEnabled(False)  # 제출 버튼 비활성화
         self.timer.stop() # 문제 풀이 완료 타이머 스탑
@@ -246,15 +258,6 @@ class studentui(QMainWindow): # 학생 ui
                 self.lcdNumber.display(self.score) # 점수 표시
             else:
                 print(f'{i + 1}번 오답') # 오답이야~
-        for i in range(20):
-            print(self.final_answer_list)
-            if i == 19:
-                sock.send('!done'.encode())
-            if self.final_answer_list[i] == '':
-                pass
-            else:
-                sleep(0.5)
-                sock.send(f'{self.quiz_list[i]}/{self.final_answer_list[i]}'.encode()) # 문제 풀이 후 서버로 문제와 적은 답 전송
 
         if -1 < self.score < 20: # 각 점수별로 뜨는 메시지 박스 (그냥 만들긴 했는데 필요있는지는 모르겠구요)
             QMessageBox.information(self, "놀았니?", f'{self.score}점\n공부 안했나요?')
@@ -266,6 +269,7 @@ class studentui(QMainWindow): # 학생 ui
             QMessageBox.information(self, "합격!", f'{self.score}점\n합격했습니다!')
         elif 79 < self.score < 101:
             QMessageBox.information(self, "선생님은 만족했다", f'{self.score}점')
+        sock.send(str(self.score).encode())
         self.quiz_widget.setRowCount(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
