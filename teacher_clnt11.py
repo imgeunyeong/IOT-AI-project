@@ -17,7 +17,6 @@ serv_msg=''
 i=0
 k=0
 
-
 class login (QDialog):
     def __init__(self):
         super().__init__() 
@@ -138,7 +137,7 @@ class teacherui(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui=uic.loadUi("teacher4.ui",self)
-        
+        self.mainpage_label.setPixmap(QPixmap("image/항목선택.png"))
         self.setWindowTitle("학습(선생용)")
         self.stackedWidget.setCurrentIndex(0) 
         
@@ -191,9 +190,9 @@ class teacherui(QMainWindow):
     def recv_quiz(self,data):
         global i
         servdata = data.split('/')
-        self.tableWidget.setItem(i, 0, QTableWidgetItem(str(servdata[2]))) #문제    
+        self.tableWidget.setItem(i, 0, QTableWidgetItem(str(servdata[1]))) #문제    
         #for j in range(0, 1):
-        self.tableWidget.setItem(i,1,QTableWidgetItem(str(servdata[3]))) #답 
+        self.tableWidget.setItem(i,1,QTableWidgetItem(str(servdata[2]))) #답 
         i+=1
    
 
@@ -206,17 +205,25 @@ class teacherui(QMainWindow):
         self.qna_line.returnPressed.connect(self.send_QNA) #엔터키누르면 
      
     def send_QNA(self):
+        sock.send('!update'.encode())
         QNA=self.qna_line.text()
-        sock.sendall(QNA.encode())
+        num=self.tableWidget_2.currentRow()
+        print(QNA)
+        data=str(num+1)+'/'+QNA
+        sock.send(data.encode())
+        #sock.sendall(QNA.encode())
         self.tableWidget_2.setItem(self.tableWidget_2.currentRow(),1,QTableWidgetItem(QNA))#입력창에 쓴거 답변창에 바로 등록
-        self.qna_line.clear()    
+        self.qna_line.clear() 
+        QMessageBox.information(self, 'Message', '답변을 등록했습니다')   
      
     @pyqtSlot(str)
     def recv_QNA(self,data):
         global k
         qnadata=data.split('/')
         #for j in len(qnadata:    
+        print('큐앤에이')
         self.tableWidget_2.setItem(k,0,QTableWidgetItem(str(qnadata[1]))) #질문만등록
+        self.tableWidget_2.setItem(k,1,QTableWidgetItem(str(qnadata[3])))
         k+=1
     
 
