@@ -16,7 +16,7 @@ sock=socket.create_connection(('127.0.0.1',9020))
 class login (QDialog):
     def __init__(self):
         super().__init__() #super가 q다이얼로그임
-        self.ui = uic.loadUi("login.ui", self)     
+        self.ui = uic.loadUi("login.ui", self)
         
         self.login_button.clicked.connect(self.input_login) #pushButton 클릭시 연결하는 함수
         self.join_in.clicked.connect(self.join) #회원가입 버튼 클릭할때 실행되는 함수
@@ -135,6 +135,7 @@ class studentui(QMainWindow): # 학생 ui
         self.time_ss = 60 # 제한시간 초 설정
         self.qna_count =0 # qna 카운트
         self.quiz_count = 0 # 퀴즈 카운트
+        self.count_quiz = 0 # 맞춘 문제 수 카운트
         tea_msg = Thread(target=self.recv_msg)  # 서버로부터 채팅방 메시지 받는 스레드 구동
         tea_msg.start()
 
@@ -176,6 +177,7 @@ class studentui(QMainWindow): # 학생 ui
     def recv_msg(self): # 서버에서 메시지 받음
         while True:
             msg = sock.recv(1024).decode()
+            print(msg)
             r_msg = msg.split('/')
             if msg == '!invite/serv':
                 invite = QMessageBox.information(self, "채팅 초대", "초대가 도착했습니다\n수락하시겠습니까?", QMessageBox.Yes | QMessageBox.No)
@@ -187,6 +189,7 @@ class studentui(QMainWindow): # 학생 ui
                 else:
                     sock.send("!no".encode())
             elif r_msg[0] == '!QnA': # r_msg[1], r_msg[2] 넣어야 함 반복문으로 추가
+                print("성공")
                 self.qna_count+=1
                 self.qna_widget.setRowCount(self.qna_count)
                 self.qna_widget.setItem(self.qna_count-1, 0, QTableWidgetItem(r_msg[2]))# [1/q/a]
@@ -196,8 +199,8 @@ class studentui(QMainWindow): # 학생 ui
                 self.quiz_count += 1
                 self.quiz_widget.setRowCount(self.quiz_count)
                 self.quiz_widget.setItem(self.quiz_count-1, 0, QTableWidgetItem(r_msg[2]))
+                self.quiz_list.append(r_msg[2])
                 self.answer_list.append(r_msg[3])
-                print(self.answer_list)
             else:
                 self.counseling_browser.append(msg)  # 받은 메시지 브라우저에 추가
 
@@ -244,6 +247,7 @@ class studentui(QMainWindow): # 학생 ui
                 print(f'{i + 1}번 정답')
                 self.score += 5  # 20문제 기준 1문제 당 5점 추가
                 self.lcdNumber.display(self.score) # 점수 표시
+                self.count_quiz += 1
             else:
                 print(f'{i + 1}번 오답') # 오답이야~
 
@@ -257,13 +261,13 @@ class studentui(QMainWindow): # 학생 ui
             QMessageBox.information(self, "합격!", f'{self.score}점\n합격했습니다!')
         elif 79 < self.score < 101:
             QMessageBox.information(self, "선생님은 만족했다", f'{self.score}점')
-        sock.send(str(self.score).encode())
+        sock.send(f'{self.count_quiz}/{len(self.quiz_list)}'.encode())
         self.quiz_widget.setRowCount(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
         self.qna_count = 0
         self.stackedWidget.setCurrentIndex(3)
-        sock.send('!Q&A'.encode())
+        sock.send('!QnA'.encode())
 
     def time_time(self): # 문제 풀이 타이머
         if self.time_ss == 0: # 초가 -1로 바뀔때 값 재설정
