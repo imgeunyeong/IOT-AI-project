@@ -10,7 +10,7 @@ import time
 from pkg_resources import ContextualVersionConflict
 
 BUFSIZE = 1024 #버퍼사이즈
-host = '10.10.20.33' 
+host = '127.0.0.1' 
 port = 9026
 userInfo = [] #로그인 성공시 유저 정보 저장 
 usercnt = 0 #연결 유저 카운트
@@ -77,7 +77,7 @@ def signup(sock): #회원가입 처리 함수
         print('succes 회원가입')
         return        
     elif userdata[3] == 'stu': #학생
-        c.execute('insert into studentInfo (ID, PW, Name, type, correctAnswer, wrongAnswer) values (?, ?, ?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3], 0, 0,)) #학생 테이블에 데이터 저장
+        c.execute('insert into studentInfo (ID, PW, Name, type, correctAnswer, wrongAnswer, time) values (?, ?, ?, ?, ?, ?, ?)', (userdata[0], userdata[1], userdata[2], userdata[3], 0, 0, 0,)) #학생 테이블에 데이터 저장
         con.commit()
         con.close()
         print('succes 회원가입')
@@ -306,7 +306,14 @@ def updateAnswer(sock):
                 time.sleep(0.5)
                 send_msg(sock, '!answer/'+answerlist[j]) #퀴즈 문제/정답 보내주기
         correct = recv_msg(sock)
+        print(correct)
+        # c.execute('select Name, wrongAnswer, correctAnswer, time from teacherInfo where ID = ?', (userInfo[clnt_num][1],))
+        # info = c.fetchone()
+        # info = list(info)
         splitcorrect = correct.split('/')
+        # correctNum = int(info[2]) + int(splitcorrect[0])
+        # wrongNum = int(info[1]) + int(splitcorrect[1]) 
+        # time =
         c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ? where ID = ?',(splitcorrect[0], splitcorrect[1], userInfo[clnt_num][1],))
         con.commit()
         con.close()
