@@ -6,6 +6,7 @@ import threading
 import sqlite3
 import sys
 import time
+from tracemalloc import Statistic
 
 from pkg_resources import ContextualVersionConflict
 
@@ -307,14 +308,17 @@ def updateAnswer(sock):
                 send_msg(sock, '!answer/'+answerlist[j]) #퀴즈 문제/정답 보내주기
         correct = recv_msg(sock)
         print(correct)
-        # c.execute('select Name, wrongAnswer, correctAnswer, time from teacherInfo where ID = ?', (userInfo[clnt_num][1],))
-        # info = c.fetchone()
-        # info = list(info)
+        c.execute('select wrongAnswer, correctAnswer, time from studentInfo where ID = ?', (userInfo[clnt_num][1],))
+        info = c.fetchone()
+        info = list(info)
         splitcorrect = correct.split('/')
-        # correctNum = int(info[2]) + int(splitcorrect[0])
-        # wrongNum = int(info[1]) + int(splitcorrect[1]) 
-        # time =
-        c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ? where ID = ?',(splitcorrect[0], splitcorrect[1], userInfo[clnt_num][1],))
+        correctNum = int(info[1]) + int(splitcorrect[0])
+        wrongNum = int(info[0]) + int(splitcorrect[1])
+        time = int(info[2]) + int(splitcorrect[2])
+        correctNum = str(correctNum)
+        wrongNum = str(wrongNum)
+        time = str(time) 
+        c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ?, time = ? where ID = ?',(correctNum, wrongNum, time, userInfo[clnt_num][1],))
         con.commit()
         con.close()
         return      
@@ -323,7 +327,66 @@ def updateAnswer(sock):
         con.close()
         return
             
-        
+def statistics(sock):
+    con, c = getcon()
+    clnt_num = findNum(sock)
+    statisticslist = []
+    send_Namelist(clnt_num)
+    
+    if userInfo[clnt_num][2] == 'stu':
+        con.close()
+        return
+    elif userInfo[clnt_num][2] == 'tea':       
+        while True:
+            name = recv_msg(sock)
+            if name == '!quit':
+                con.close()
+                return
+            c.execute('select WrongNum, correctNum, time from studentInfo where Name = ?', (name,))
+            row = c.fetchone()
+            for i in row:
+                i = list(i)
+                i = '/'.join(i) 
+                statisticslist.append(i)  
+            print(statisticslist)
+            for i in range(0, len(statisticslist)):
+                send_msg(sock, '!statistics/'+statisticslist[i])
+                
+def send_Namelist(clnt_num):
+    con, c =getcon()
+    namelist = []
+    
+    if userInfo[clnt_num][2] == 'stu':
+        c.execute('select Name from teacherInfo')
+        row = c.fetchall()
+        if not row:   
+            send_msg(userInfo[clnt_num][0], '!no')
+        else:
+            for i in row:
+                i = list(i)
+                i = '/'.join(i) 
+                namelist.append(i)           
+        print(namelist)
+        for j in range(0, len(namelist)):
+            time.sleep(0.5)
+            send_msg(userInfo[clnt_num][0], '!name/'+ namelist[j])
+    elif userInfo[clnt_num][2] == 'tea':
+        c.execute('select Name from studentInfo')
+        row = c.fetchall()
+        if not row:   
+            send_msg(userInfo[clnt_num][0], '!no')
+        else:
+            for i in row:
+                i = list(i)
+                i = '/'.join(i) 
+                namelist.append(i)           
+        print(namelist)
+        for j in range(0, len(namelist)):
+            time.sleep(0.5)
+            send_msg(userInfo[clnt_num][0], '!name/'+ namelist[j])
+    con.close()
+    return
+    
 
 def handleclnt(sock): # 클라정보 수신 스레드
     while True:
@@ -341,6 +404,8 @@ def handleclnt(sock): # 클라정보 수신 스레드
             updateQuiz(sock)
         elif data == '!answer':
             updateAnswer(sock)
+        elif data == '!statistics':
+            statistics(sock)    
         elif data == '!exit': #!exit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
             delete_userInfo(sock)
         elif not data:
