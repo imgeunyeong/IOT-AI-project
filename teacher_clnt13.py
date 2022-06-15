@@ -20,7 +20,6 @@ serv_msg = ''
 i = 0
 k = 0
 
-
 class login(QDialog):
     def __init__(self):
         super().__init__()
@@ -140,7 +139,6 @@ class recv(QThread):
                 self.sig4.emit(serv_msg)
             elif "!name" in serv_msg:  #이름
                 self.sig5.emit(serv_msg)   
-
             else:
                 self.sig.emit(serv_msg)  # serv_msg를 다른 클래스로 전송 emit으로 시그널을 발생시킴
 
@@ -212,7 +210,11 @@ class teacherui(QMainWindow):
         print('임시')
         sock.send("!statistics".encode())
         self.stackedWidget.setCurrentIndex(1)
-        self.back_button.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.back_button.clicked.connect(self.exit_manage)
+
+    def exit_manage(self):
+        sock.send("!quit".encode())
+        self.stackedWidget.setCurrentIndex(0)
 
 
     @pyqtSlot(str) #sig5
@@ -224,11 +226,14 @@ class teacherui(QMainWindow):
         print('임시1')
         self.stackedWidget.setCurrentIndex(2)
         sock.sendall("!quiz".encode())
-        self.back_button_2.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.back_button_2.clicked.connect(self.exit_quiz)
         self.tableWidget.setRowCount(10)
 
         self.quiz_line.returnPressed.connect(self.send_quiz)  # 등록버튼 누르면
-    
+
+    def exit_quiz(self):
+        sock.send("!quit".encode())
+        self.stackedWidget.setCurrentIndex(0)
 
     def send_quiz(self):  # 전달 받은 데이터를 data에 넣는다.
         quiz = self.quiz_line.text()
@@ -247,10 +252,14 @@ class teacherui(QMainWindow):
     def QNA(self):
         print('임시')
         self.stackedWidget.setCurrentIndex(3)
-        self.back_button_3.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.back_button_3.clicked.connect(self.exit_QNA)
         self.tableWidget_2.setRowCount(10)
         sock.send("!QnA".encode())  # 서버한테 qna 한다고 보내고
         self.qna_line.returnPressed.connect(self.send_QNA)  # 엔터키누르면
+
+    def exit_QNA(self):
+        sock.send("!quit".encode())
+        self.stackedWidget.setCurrentIndex(0)
 
     def send_QNA(self):
         sock.send('!update'.encode())
