@@ -214,6 +214,7 @@ class studentui(QMainWindow): # 학생 ui
 
     def quiz_page(self): # 문제만 할당하고 Db에 있는 문제와 답이 일치 할 때 정답처리 리스트에 넣어서 해야하나?
         self.stackedWidget.setCurrentIndex(2)
+        self.quiz_count = 0
         sock.send('!quiz'.encode()) # 서버로 신호 전송
         self.quiz_start_btn.clicked.connect(self.quiz_start) # 퀴즈 페이지로 넘어온 신호랑 겹칠거 같아서 분리 (시작버튼 누르면 넘어감)
 
@@ -233,9 +234,8 @@ class studentui(QMainWindow): # 학생 ui
         self.quiz_start_btn.setEnabled(True)  # 시작 버튼 활성화
         self.quiz_complete_btn.setEnabled(False)  # 제출 버튼 비활성화
         self.timer.stop() # 문제 풀이 완료 타이머 스탑
-        self.time_mm = 19 # 변수 값 초기화
-        self.time_ss = 60
-        self.timer_label.setText("20 : 00") # 라벨 텍스트 재설정
+        check_time = self.time_mm * 60 + self.time_ss
+        print(check_time)
         for i in range(self.quiz_widget.rowCount()): # 퀴즈 위젯의 행 카운트
             answer = self.quiz_widget.item(i, 1) # 퀴즈 위젯에 적은 답을 가져옴
             try:
@@ -261,7 +261,10 @@ class studentui(QMainWindow): # 학생 ui
             QMessageBox.information(self, "합격!", f'{self.score}점\n합격했습니다!')
         elif 79 < self.score < 101:
             QMessageBox.information(self, "선생님은 만족했다", f'{self.score}점')
-        sock.send(f'{self.count_quiz}/{len(self.quiz_list)}'.encode())
+        sock.send(f'{self.count_quiz}/{len(self.quiz_list)}/{check_time}'.encode())
+        self.time_mm = 19  # 변수 값 초기화
+        self.time_ss = 60
+        self.timer_label.setText("20 : 00")  # 라벨 텍스트 재설정
         self.quiz_widget.setRowCount(0)
 
     def qna_page(self): # 페이지 이동하면서 !Q&A 신호 전송
