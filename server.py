@@ -304,8 +304,8 @@ def updateAnswer(sock):
     print(answerlist) 
     if userInfo[clnt_num][2] == 'stu':
         for j in range(0, len(answerlist)):
-                time.sleep(0.5)
-                send_msg(sock, '!answer/'+answerlist[j]) #퀴즈 문제/정답 보내주기
+            time.sleep(0.5)
+            send_msg(sock, '!answer/'+answerlist[j]) #퀴즈 문제/정답 보내주기
         correct = recv_msg(sock)
         print(correct)
         c.execute('select wrongAnswer, correctAnswer, time from studentInfo where ID = ?', (userInfo[clnt_num][1],))
@@ -314,11 +314,11 @@ def updateAnswer(sock):
         splitcorrect = correct.split('/')
         correctNum = int(info[1]) + int(splitcorrect[0])
         wrongNum = int(info[0]) + int(splitcorrect[1])
-        time = int(info[2]) + int(splitcorrect[2])
+        playtime = int(info[2]) + int(splitcorrect[2])
         correctNum = str(correctNum)
         wrongNum = str(wrongNum)
-        time = str(time) 
-        c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ?, time = ? where ID = ?',(correctNum, wrongNum, time, userInfo[clnt_num][1],))
+        playtime = str(time) 
+        c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ?, time = ? where ID = ?',(correctNum, wrongNum, playtime, userInfo[clnt_num][1],))
         con.commit()
         con.close()
         return      
