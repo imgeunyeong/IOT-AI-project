@@ -271,6 +271,9 @@ def updateQuiz(sock): #문제등록 함수
             print('학생')
             correct = recv_msg(sock)
             print(correct)
+            if correct == '!quit':
+                con.close()
+                return
             c.execute('select correctAnswer, wrongAnswer, time from studentInfo where ID = ?', (userInfo[clnt_num][1],))
             info = c.fetchone()
             info = list(info)
