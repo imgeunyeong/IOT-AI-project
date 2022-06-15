@@ -261,6 +261,9 @@ background-color:lavender;</string>
       <property name="frameShadow">
        <enum>QFrame::Sunken</enum>
       </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
       <column>
        <property name="text">
         <string>공룡명</string>
@@ -520,6 +523,9 @@ background-color:lavender;</string>
        <string notr="true">color:black;
 background-color:lavender;</string>
       </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
       <column>
        <property name="text">
         <string>QUIZ</string>
@@ -649,9 +655,9 @@ background-color : skyblue;border-radius: 20px;
      <widget class="QLabel" name="label_4">
       <property name="geometry">
        <rect>
-        <x>560</x>
+        <x>540</x>
         <y>40</y>
-        <width>81</width>
+        <width>101</width>
         <height>41</height>
        </rect>
       </property>
@@ -670,7 +676,7 @@ color:blue;</string>
        <enum>QFrame::NoFrame</enum>
       </property>
       <property name="text">
-       <string>점수  :</string>
+       <string>Point  :</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -694,11 +700,11 @@ color:blue;</string>
       </property>
       <property name="styleSheet">
        <string notr="true">QPushButton{color:blue;
-background-color:lavender;border-radius: 20px;}
+background-color:lavender;border-radius: 40px;}
 
 QPushButton:hover 
 {
-background-color : skyblue;border-radius: 40px;
+background-color : skyblue;border-radius: 20px;
 }</string>
       </property>
       <property name="text">
@@ -723,11 +729,11 @@ background-color : skyblue;border-radius: 40px;
       </property>
       <property name="styleSheet">
        <string notr="true">QPushButton{color:blue;
-background-color:lavender;border-radius: 20px;}
+background-color:lavender;border-radius: 40px;}
 
 QPushButton:hover 
 {
-background-color : skyblue;border-radius: 40px;
+background-color : skyblue;border-radius: 20px;
 }</string>
       </property>
       <property name="text">
@@ -914,6 +920,9 @@ background-color : skyblue;border-radius: 20px;
       <property name="styleSheet">
        <string notr="true">color:black;
 background-color:lavender;</string>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
       </property>
       <column>
        <property name="text">
