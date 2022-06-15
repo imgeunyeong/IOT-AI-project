@@ -130,7 +130,6 @@ class studentui(QMainWindow): # 학생 ui
         self.a_list = [] # 답변 담기용 리스트
         self.final_answer_list = [] # 학생이 적은 답 담기 리스트
         self.score = 0 # 학생이 푼 문제 점수 할당용
-        self.timer = QTimer(self) # 문제풀이 제한시간용 타이머
         self.time_mm = 19 # 제한시간 분 설정
         self.time_ss = 60 # 제한시간 초 설정
         self.qna_count =0 # qna 카운트
@@ -222,6 +221,7 @@ class studentui(QMainWindow): # 학생 ui
         self.back_button_2.setEnabled(False) # 돌아가기 버튼 비활성화
         start = QMessageBox.information(self, "문제 풀이", "제한시간은 20분입니다\n시작합니다!", QMessageBox.Yes)
         if start == QMessageBox.Yes:
+            self.timer = QTimer(self)  # 문제풀이 제한시간용 타이머
             self.timer.start(1000) # 1초마다 타이머 작동
             self.timer.timeout.connect(self.time_time) # 1초마다 타이머 작동 함수 연결
             self.quiz_start_btn.setEnabled(False) # 시작 버튼 비활성화 # 활성화 비활성화 구분이 안가요 기능구현 끝나면 손봐야 할듯?
@@ -233,7 +233,7 @@ class studentui(QMainWindow): # 학생 ui
         self.back_button_2.setEnabled(True)  # 돌아가기 버튼 활성화
         self.quiz_start_btn.setEnabled(True)  # 시작 버튼 활성화
         self.quiz_complete_btn.setEnabled(False)  # 제출 버튼 비활성화
-        self.timer.stop() # 문제 풀이 완료 타이머 스탑
+        self.timer.deleteLater() # 문제 풀이 완료 타이머 스탑
         check_time = self.time_mm * 60 + self.time_ss
         print(check_time)
         for i in range(self.quiz_widget.rowCount()): # 퀴즈 위젯의 행 카운트
