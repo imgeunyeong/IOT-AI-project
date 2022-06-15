@@ -1,14 +1,8 @@
-from collections import UserDict
-from concurrent.futures import thread
-from posixpath import split
 import socket
 import threading
 import sqlite3
 import sys
 import time
-from tracemalloc import Statistic
-
-from pkg_resources import ContextualVersionConflict
 
 BUFSIZE = 1024 #버퍼사이즈
 host = '127.0.0.1' 
@@ -316,14 +310,15 @@ def statistics(sock):
     elif userInfo[clnt_num][2] == 'tea':       
         while True:
             name = recv_msg(sock)
+            print(name)
             if name == '!quit':
                 con.close()
                 return
-            c.execute('select WrongNum, correctNum, time from studentInfo where Name = ?', (name,))
+            c.execute('select correctAnswer, wrongAnswer, time from studentInfo where Name = ?', (name,))
             row = c.fetchone()
             for i in row:
                 i = list(i)
-                i = '/'.join(i) 
+                i = ''.join(i) 
                 statisticslist.append(i)  
             print(statisticslist)
             for i in range(0, len(statisticslist)):
