@@ -275,9 +275,22 @@ def updateQuiz(sock): #문제등록 함수
     while True:
         if userInfo[clnt_num][2] == 'stu': # 학생일때
             print('학생')
-            send_msg(sock, '!no') #메세지 보내기
+            correct = recv_msg(sock)
+            print(correct)
+            c.execute('select correctAnswer, wrongAnswer, time from studentInfo where ID = ?', (userInfo[clnt_num][1],))
+            info = c.fetchone()
+            info = list(info)
+            splitcorrect = correct.split('/')
+            correctNum = int(info[0]) + int(splitcorrect[0])
+            wrongNum = int(info[1]) + int(splitcorrect[1])
+            playtime = int(info[2]) + (1200 -int(splitcorrect[2]))
+            correctNum = str(correctNum)
+            wrongNum = str(wrongNum)
+            playtime = str(playtime) 
+            c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ?, time = ? where ID = ?',(correctNum, wrongNum, playtime, userInfo[clnt_num][1],))
+            con.commit()
             con.close()
-            return
+            return      
         elif userInfo[clnt_num][2] == 'tea': #선생님일때
             print('선생님')
             Quiz = recv_msg(sock)
@@ -291,42 +304,6 @@ def updateQuiz(sock): #문제등록 함수
             con.commit()
             QuizNum+=1 #질문 등록후 번호+1
 
-def updateAnswer(sock):
-    con, c = getcon()
-    clnt_num = findNum(sock)
-    answerlist = []
-    c.execute('select * from quiz')
-    Quiz = c.fetchall()     
-    for i in Quiz:
-        i = list(i)
-        i = '/'.join(i) 
-        answerlist.append(i)
-    print(answerlist) 
-    if userInfo[clnt_num][2] == 'stu':
-        for j in range(0, len(answerlist)):
-            time.sleep(0.5)
-            send_msg(sock, '!answer/'+answerlist[j]) #퀴즈 문제/정답 보내주기
-        correct = recv_msg(sock)
-        print(correct)
-        c.execute('select correctAnswer, wrongAnswer, time from studentInfo where ID = ?', (userInfo[clnt_num][1],))
-        info = c.fetchone()
-        info = list(info)
-        splitcorrect = correct.split('/')
-        correctNum = int(info[0]) + int(splitcorrect[0])
-        wrongNum = int(info[1]) + int(splitcorrect[1])
-        playtime = int(info[2]) + int(splitcorrect[2])
-        correctNum = str(correctNum)
-        wrongNum = str(wrongNum)
-        playtime = str(playtime) 
-        c.execute('update studentInfo set correctAnswer = ?, wrongAnswer = ?, time = ? where ID = ?',(correctNum, wrongNum, playtime, userInfo[clnt_num][1],))
-        con.commit()
-        con.close()
-        return      
-    elif userInfo[clnt_num][2] == 'tea':
-        send_msg(sock, '!no')
-        con.close()
-        return
-            
 def statistics(sock):
     con, c = getcon()
     clnt_num = findNum(sock)
@@ -402,8 +379,6 @@ def handleclnt(sock): # 클라정보 수신 스레드
             QnA(sock)
         elif data == '!quiz': #!quiz받으면 문제출제 함수 실행
             updateQuiz(sock)
-        elif data == '!answer':
-            updateAnswer(sock)
         elif data == '!statistics':
             statistics(sock)    
         elif data == '!exit': #!exit 받으면 해당 클라이언트 정보 삭제 후 뒤에있는 정보 당겨오기
