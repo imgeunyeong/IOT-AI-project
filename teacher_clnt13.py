@@ -23,7 +23,7 @@ k = 0
 class login(QDialog):
     def __init__(self):
         super().__init__()
-        self.ui = uic.loadUi("login.ui", self)
+        self.ui = uic.loadUi("newui2.ui", self)
 
         self.login_button.clicked.connect(self.input_login)
         self.join_in.clicked.connect(self.join)
@@ -34,7 +34,7 @@ class login(QDialog):
         id = self.idbar.text()
         pw = self.pwbar.text()
         info = id + '/' + pw
-
+        
         if self.student.isChecked():
             info = info + '/stu'
         elif self.teacher.isChecked():

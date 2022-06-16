@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>login</class>
+ <widget class="QDialog" name="login">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>727</width>
+    <height>466</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QPushButton" name="login_button">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>310</y>
+     <width>71</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Ubuntu</family>
+     <pointsize>11</pointsize>
+     <weight>7</weight>
+     <italic>true</italic>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(61, 52, 107);
+color: rgb(238, 238, 236);
+border:none;
+border-bottom-color: rgb(238, 238, 236);
+font: 57 italic 11pt &quot;Ubuntu&quot;;
+</string>
+   </property>
+   <property name="text">
+    <string>Login</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="pwbar">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>270</y>
+     <width>161</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius:10px;</string>
+   </property>
+   <property name="placeholderText">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="id_label">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>220</y>
+     <width>51</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(61, 52, 107);
+font: 13pt &quot;Ubuntu&quot;;
+color: rgb(238, 238, 236);
+border:none;
+border-bottom-color: rgb(238, 238, 236);
+font: 57 italic 11pt &quot;Ubuntu&quot;;
+</string>
+   </property>
+   <property name="text">
+    <string>Id</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="pw_label">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>280</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(61, 52, 107);
+font: 13pt &quot;Ubuntu&quot;;
+color: rgb(238, 238, 236);
+border:none;
+border-bottom-color: rgb(238, 238, 236);
+font: 57 italic 11pt &quot;Ubuntu&quot;;
+</string>
+   </property>
+   <property name="text">
+    <string>Password</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="join_in">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>310</y>
+     <width>71</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Ubuntu</family>
+     <pointsize>11</pointsize>
+     <weight>7</weight>
+     <italic>true</italic>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(61, 52, 107);
+color: rgb(238, 238, 236);
+border:none;
+border-bottom-color: rgb(238, 238, 236);
+font: 57 italic 11pt &quot;Ubuntu&quot;;
+</string>
+   </property>
+   <property name="text">
+    <string>Join in</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>-10</x>
+     <y>0</y>
+     <width>791</width>
+     <height>481</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap>../../다운로드/템플릿.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="idbar">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>220</y>
+     <width>161</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius:10px;</string>
+   </property>
+   <property name="placeholderText">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>160</y>
+     <width>51</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap>../../다운로드/baseline_account_circle_white_24dp.png</pixmap>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="teacher">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>360</y>
+     <width>91</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">
+color: rgb(238, 238, 236);</string>
+   </property>
+   <property name="text">
+    <string>teacher</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="student">
+   <property name="geometry">
+    <rect>
+     <x>530</x>
+     <y>360</y>
+     <width>112</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(238, 238, 236);</string>
+   </property>
+   <property name="text">
+    <string>student</string>
+   </property>
+  </widget>
+  <zorder>label_2</zorder>
+  <zorder>login_button</zorder>
+  <zorder>pwbar</zorder>
+  <zorder>id_label</zorder>
+  <zorder>pw_label</zorder>
+  <zorder>join_in</zorder>
+  <zorder>idbar</zorder>
+  <zorder>label_4</zorder>
+  <zorder>teacher</zorder>
+  <zorder>student</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
