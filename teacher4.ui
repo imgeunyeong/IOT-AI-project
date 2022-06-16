@@ -30,7 +30,7 @@
 	border-radius: 5px;</string>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QLabel" name="label">
@@ -199,54 +199,6 @@ border-radius: 65;
      <zorder>question_button</zorder>
     </widget>
     <widget class="QWidget" name="page_2">
-     <widget class="QTableWidget" name="study_widget">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>90</y>
-        <width>711</width>
-        <height>481</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
-      <column>
-       <property name="text">
-        <string>공룡명</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>생존시기</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>크기</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>체중</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>발견한 대륙</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>발견 상세지역</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>특징</string>
-       </property>
-      </column>
-     </widget>
      <widget class="QLabel" name="label_2">
       <property name="geometry">
        <rect>
@@ -288,6 +240,39 @@ border-radius: 65;
       </property>
       <property name="text">
        <string>돌아가기</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_14">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>150</y>
+        <width>331</width>
+        <height>321</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="vbox"/>
+     </widget>
+     <widget class="QTextBrowser" name="statis">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>130</y>
+        <width>311</width>
+        <height>361</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Ubuntu</family>
+        <pointsize>17</pointsize>
+        <weight>7</weight>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 57 17pt &quot;Ubuntu&quot;;</string>
       </property>
      </widget>
     </widget>
