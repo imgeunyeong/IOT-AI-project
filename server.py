@@ -325,7 +325,11 @@ def statistics(sock):
                 statisticslist.append(i)  
             print(statisticslist)
             for i in range(0, len(statisticslist)):
-                send_msg(sock, '!statistics/'+statisticslist[i])
+                time.sleep(0.5)
+                if i == 0:
+                    send_msg(sock, '!statistics/'+statisticslist[i])
+                else:
+                    send_msg(sock, statisticslist[i])
                 
 def send_Namelist(clnt_num):
     con, c =getcon()
