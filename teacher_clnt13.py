@@ -194,14 +194,16 @@ class teacherui(QMainWindow):
         correct="맞춘문제: "+str(newdata[1]) 
         correct2="전체문제: "+str(newdata[2])
         correct3="틀린문제: "+str(int(newdata[2])-int(newdata[1]))
-        correct4="학생이름 "+(str(newdata[4]))
-        self.statis.append(correct4)
-        self.statis.append(" ")
-        self.statis.append(correct2)
-        self.statis.append(" ")
-        self.statis.append(correct)
-        self.statis.append(" ")
-        self.statis.append(correct3)
+        correct4="학생이름: "+(str(newdata[4]))
+        correct5="풀이시간: "+str(round((int(newdata[3])/60)))+"분"
+        # self.statis.append(correct4)
+        # self.statis.append(" ")
+        # self.statis.append(correct2)
+        # self.statis.append(" ")
+        # self.statis.append(correct)
+        # self.statis.append(" ")
+        # self.statis.append(correct3)
+        self.statis.append(f'{correct4}\n\n{correct2}\n\n{correct}\n\n{correct3}\n\n{correct5}')
         self.graph.clear() # 반복 될 때마다 clear를 해줘야 그래프가 겹치지 않음
         self.test_1 = correct  # 테스트용으로 만들어 놓은 변수인데 편한데로 수정하시고 그래프로 표현할 값 넣어주시면 됩니다 --> self.test_1 = 넣을 값
         self.test_2 = correct3       
