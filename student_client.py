@@ -17,7 +17,7 @@ class login (QDialog):
     def __init__(self):
         super().__init__() #super가 q다이얼로그임
         self.ui = uic.loadUi("login.ui", self)
-        
+
         self.login_button.clicked.connect(self.input_login) #pushButton 클릭시 연결하는 함수
         self.join_in.clicked.connect(self.join) #회원가입 버튼 클릭할때 실행되는 함수
 
@@ -28,7 +28,7 @@ class login (QDialog):
         pw = self.pwbar.text()
         info = id + '/' + pw
 
-        if self.student.isChecked() : 
+        if self.student.isChecked() :
             info = info + '/stu'
         elif self.teacher.isChecked() :
             info = info + '/tea'
@@ -36,7 +36,7 @@ class login (QDialog):
         sock.sendall(info.encode()) #id,pw,type
         # 데이터 베이스에 있는지 서버에서 확인하고 있으면 !ok 없으면 !no
         ch = sock.recv(1024).decode() #여기서 디코드
-        print(ch) 
+        print(ch)
         chlist = ch.split('/')
         if chlist[0] == '!ok': #데이터베이스에 있으면 (데이터베이스는 !ok or !no/'stu' or 'tea' 형태로 보냄)
             if chlist[1] == 'stu':
@@ -46,7 +46,7 @@ class login (QDialog):
 
             elif chlist[1]=='tea':
                 print("teacher.ui 넣는 자리")
-            
+
             else:
                 QMessageBox.warning(self, 'Warning', '아이디,비밀번호를 확인해주세요')
 
@@ -55,9 +55,9 @@ class login (QDialog):
         self.close()
         regit_show = regit()
         regit_show.exec_()
-        
 
-class regit(QDialog): #가입창 
+
+class regit(QDialog): #가입창
     def __init__(self):
         super().__init__()
         self.ui = uic.loadUi("regit.ui",self)
@@ -97,7 +97,7 @@ class regit(QDialog): #가입창
         else:
             QMessageBox.warning(self, 'Warning', '비밀번호를 잘못 입력했습니다')
 
-    def enter(self):  #가입창 함수 
+    def enter(self):  #가입창 함수
         self.close() #로그인ui를닫음(self가 현재 login class임)
         login_show = login() # 클래스담고
         login_show.exec_() #클래스실행(가입창)
@@ -106,7 +106,7 @@ class regit(QDialog): #가입창
 class teacherui(QDialog): # 선생님 ui의 흔적
     def __init__(self):
         super().__init__()
-        self.ui=uic.loadUi("teacher.ui",self)   
+        self.ui=uic.loadUi("teacher.ui",self)
 
 
 class studentui(QMainWindow): # 학생 ui
@@ -389,9 +389,9 @@ class studentui(QMainWindow): # 학생 ui
             sock.send("!exit".encode())
 
     def userquit(self): # 선택 메뉴로 이동
+        sock.send("!quit".encode())
         self.stackedWidget.setCurrentIndex(0)
         self.counseling_browser.clear()
-        sock.send("!quit".encode())
         self.quiz_widget.setRowCount(0)
         self.qna_widget.setRowCount(0)
 
