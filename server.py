@@ -304,7 +304,6 @@ def updateQuiz(sock): #문제등록 함수
 def statistics(sock):
     con, c = getcon()
     clnt_num = findNum(sock)
-    statisticslist = []
     send_Namelist(clnt_num)
     
     if userInfo[clnt_num][2] == 'stu':
@@ -318,18 +317,11 @@ def statistics(sock):
                 con.close()
                 return
             c.execute('select correctAnswer, wrongAnswer, time from studentInfo where Name = ?', (name,))
-            row = c.fetchone()
-            for i in row:
-                i = list(i)
-                i = ''.join(i) 
-                statisticslist.append(i)  
+            statisticslist = c.fetchone()
+            statisticslist = list(statisticslist)  
             print(statisticslist)
-            for i in range(0, len(statisticslist)):
-                time.sleep(0.5)
-                if i == 0:
-                    send_msg(sock, '!statistics/'+statisticslist[i])
-                else:
-                    send_msg(sock, statisticslist[i])
+            send_msg(sock, '!statistics/'+statisticslist[0]+'/'+statisticslist[1]+'/'+statisticslist[2]+'/'+name)
+
                 
 def send_Namelist(clnt_num):
     con, c =getcon()
