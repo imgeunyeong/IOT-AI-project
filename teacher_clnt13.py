@@ -14,7 +14,7 @@ from matplotlib.animation import*
 import threading
 import time
 
-sock = socket.create_connection(('10.10.20.33', 9026))
+sock = socket.create_connection(('127.0.0.1', 9026))
 id = ''
 serv_msg = ''
 i = 0
@@ -159,8 +159,8 @@ class teacherui(QMainWindow):
         self.qThread.sig.connect(self.print_data)  # sig 라는 이벤트가 발생하면
         self.qThread.sig2.connect(self.recv_quiz)  # sig2라는 이벤트가 발생하면 recv_quiz 함수 실행
         self.qThread.sig3.connect(self.recv_QNA)  # sig3 라는 이벤트가 발생하면 recv_QNA 함수 실행
-        self.qThread.sig4.connect(self.pie_graph) #통계
-        self.qThread.sig5.connect(self.sat_init) # sig5 이름
+        self.qThread.sig4.connect(self.pie_graph) #통계 !statistics
+        self.qThread.sig5.connect(self.sat_init) # sig5 이름 !name
 
         self.qThread.daemon = True
         self.qThread.start()
@@ -182,21 +182,32 @@ class teacherui(QMainWindow):
         self.fig.subplots_adjust(bottom=0.15)
         # 음.. 이건 그래프 위치 지정하는 함수 ex) add.subplot(행의 수, 열의 수, index 번호) (2,2,4)라면 2행 2열로 layout을 나누고 4번째 위치에 그래프 배치 (오른쪽 아래)
         self.graph_animation = FuncAnimation(self.fig, self.pie_graph, interval=1000, blit=False)
-        # 그래프가 계속 돌아가도록 애니메이션 선언 (스레드 처럼 계속 작동) FuncAnimation(생성한 figure,연결 함수, 반복 주기(interval=1000은 1초),blit=False) False를 넣냐 True를 넣냐에 따라 값이 달라진다지만 잘 되니까 False 사용
+        # 그래프가 계속 돌아가도록 애니메이션 선언 (스레드 처럼 계속 작동) FuncAnimation(생성한 figure,연결 함수, 반복 주기(interval=1000은 1초),blit=False) False를  True를 넣냐에 따라 값이 달라진다지만 잘 되니까 False 사용
    
-    @pyqtSlot(str) #sig5
+    @pyqtSlot(str) #sig4 !statis
     def pie_graph(self,data): # self 옆에 i를 적어줘야 돌아감
         #맞춘문제수/총문제수(빼서 넣기) /시간/학생이름/
         self.data=data
         print(data)
         newdata=data.split('/')
-        print(f'뉴데이터{newdata}')#키워드/맞춘문제/틀린문제/시간/이름
+        print(f'뉴데이터{newdata}')#키워드/맞춘문제/시간/이름
+        correct="맞춘문제: "+str(newdata[1]) 
+        correct2="전체문제: "+str(newdata[2])
+        correct3="틀린문제: "+str(int(newdata[2])-int(newdata[1]))
+        correct4="학생이름 "+(str(newdata[4]))
+        self.statis.append(correct4)
+        self.statis.append(" ")
+        self.statis.append(correct2)
+        self.statis.append(" ")
+        self.statis.append(correct)
+        self.statis.append(" ")
+        self.statis.append(correct3)
         self.graph.clear() # 반복 될 때마다 clear를 해줘야 그래프가 겹치지 않음
-        self.test_1 = newdata[1]  # 테스트용으로 만들어 놓은 변수인데 편한데로 수정하시고 그래프로 표현할 값 넣어주시면 됩니다 --> self.test_1 = 넣을 값
-        self.test_2 += newdata[1]- newdata[2]
+        self.test_1 = correct  # 테스트용으로 만들어 놓은 변수인데 편한데로 수정하시고 그래프로 표현할 값 넣어주시면 됩니다 --> self.test_1 = 넣을 값
+        self.test_2 = correct3       
         self.graph.pie([self.test_1, self.test_2], labels=[' Correct', 'Wrong'], autopct='%.1f%%',
                         colors=['yellow', 'red'], shadow=True)
-        self.sat_browser.append(newdata)                
+                     
         # 동그란 그래프는 canvas객체.pie 막대그래프는 canvas객체.bar
         # canvas객체.pie([그래프에 표현할 값], labels=[그래프 이름지정], colors=[그래프 색깔지정] , autopct='%.1%%' (퍼센트로 그래프를 보여주게 설정 숫자에 따라서 소수점 몇번째까지 보여줄지 정해짐), shadow= 그림자 효과
 
@@ -217,7 +228,7 @@ class teacherui(QMainWindow):
         self.stackedWidget.setCurrentIndex(0)
 
 
-    @pyqtSlot(str) #sig5
+    @pyqtSlot(str) #sig5 #이름 목록 
     def sat_init(self,data):
         request = namelist(data)
         request.show()
@@ -289,18 +300,7 @@ class teacherui(QMainWindow):
         sock.sendall("!chat".encode())
 
         self.counseling_line.returnPressed.connect(self.send)  # 학생이름 서버에 보내고
-        # serv_msg=sock.recv(1024).decode()
-        # print(f'메세지 확인: {serv_msg}')
-        ##cThread=threading.Thread(target=self.recv,args=())
-        ##cThread.demon=True
-        ##cThread.start()
-
-        # cThread=threading.Thread(target=self.recv,args=())
-        # cThread.demon=True
-        # cThread.start()
         print('확인1')
-
-        # self.counseling_line.returnPressed.connect(self.send)
 
     def send(self):
         self.counseling_browser.append(self.counseling_line.text())
@@ -363,9 +363,10 @@ class namelist(QMainWindow):  #이름 목록
         newdata2=data.split('/')
         for h in range(0,len(newdata2)-1):
             self.namelist.setItem(h, 0, QTableWidgetItem(str(newdata2[h+1])))
-    
+  
     def send_name(self):
         self.close()
+
         sock.send(self.write.text().encode())
         print(self.write.text())
         self.write.clear()
